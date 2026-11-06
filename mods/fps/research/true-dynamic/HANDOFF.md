@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest runtime milestone: eight short E0F3 gameplay timing-config callsite breakpoint hits ALL went through main+0x006E70F8 (none at main+0x006E6DD8), with flags 0x0B, S0=S8=1.0, integer FPS target 60, and D50 counting +1 per hit. V9 remains failed; its fractional S8 could generate non-divisor-of-60 nominal rates even when the game is near 30 FPS. This compatibility concern is mathematical, NOT a proven failure cause.
+> Latest static forensic milestone: V9's three modifications are now independently decoded (NOP a branch, force presentation argument W1=1 instead of loading X20+0x48, and replace FDIV S8). The E0F3 timing-converter always writes rounded nominal 60/S8 and, when config+0x1C8 has a callback object, invokes its vtable +0x10 method with no previous-rate comparison on this path. The callback target remains UNKNOWN. Original-game eight-hit trace still shows later callsite S8=1.0, nominal 60; V9 remains failed.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -735,3 +735,46 @@ See [FRAME_STEP_PATH_30FPS_FIRST_TRACE.md](FRAME_STEP_PATH_30FPS_FIRST_TRACE.md)
 not repeating GDB baseline sampling.** Do not build V10 or reinstall
 failed V9 just to make guesses. Keep both builds in scope; live trace
 only covers E0F3.
+
+
+## 21. Independent static V9 coupling audit and timing callback (2026-11-06)
+
+Continued autonomous source-only analysis **without any new user capture**.
+The archived V9 builder modifies three **independent** original E0F3
+sites: at `main+0x03B4EF90`, original `TBNZ W8,#0, +0xE4` is
+replaced by `NOP`; at `main+0x03B4F080`, original
+`LDR W1,[X20,#0x48]` is replaced by `MOV W1,#1`; and at
+`main+0x006E6CC4`, original `FDIV S8,S1,S0` is replaced by a
+branch to the V9 timing-helper. These three effects were confounded
+in earlier V9 speed reports. Do not say the wall-clock source caused
+V9's over-speed without ruling out guard and presentation behavior.
+The corresponding 33FA patch sites exist in archived source but
+specific callback/guest path evidence is still E0F3 only.
+
+New static finding from private disassembly of previously supplied
+`frame_step_followup.json`: original E0F3 `main+0x03B4E300`
+timing converter stores the rounded `60/S8` nominal integer at
+`config+0x1C`; at offset `main+0x03B4E364`, it loads the
+optional callback object pointer from `config+0x1C8`. If present,
+it calls the callback object's vtable method at offset `+0x10`,
+passing the config object. The traced execution path does **not**
+compare against the previous nominal rate before invoking the callback.
+This permits repeated callback notifications if the pointer is set,
+but the **callback destination and its actual effects are unknown**.
+It is not proven to reach the separately identified native
+non-divisor-of-60 rate validator.
+
+See [V9_CAUSAL_INTERACTION_AUDIT.md](V9_CAUSAL_INTERACTION_AUDIT.md)
+and offline source-only [v9_rate_coupling_model.py](v9_rate_coupling_model.py),
+with synthetic tests `tests/test_v9_rate_coupling_model.py`.
+The model reproduces the archived V9 float32/clamp math and ordinary
+positive-step `60/step` rounding. **Its predicted nominal rates are
+not gameplay results or a confirmed emulator speed.**
+
+Next source-only priority is mapping the optional callback's consumers
+and the presentation-interval source `[X20+0x48]`. A verified live
+callback pointer/callee capture may eventually be required; do not
+request repeated baseline 30 FPS samples. The user has not provided
+new runtime data since the eight-hit callsite capture. No experimental
+V10 has been generated, no stable branch/release touched, and no
+private copyrighted instructions have been committed.
