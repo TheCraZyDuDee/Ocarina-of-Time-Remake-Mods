@@ -1,6 +1,10 @@
-# E0F3 timing configuration path identity — read-only GDB trace
+# E0F3 timing configuration path identity — temporary GDB breakpoints
 
 **Not a dynamic FPS patch, not an unbiased timing benchmark.**
+Unlike a pure memory read, GDB software breakpoints may temporarily
+replace instructions in guest memory while armed; they are removed by
+the helper. They are not a persistent mod and must never be used as
+an elapsed-frame timing measurement.
 Use this only to determine whether the normal-gameplay frame-step machinery
 reaches either or both verified E0F3 timing-config calls into
 `main+0x03B4E300`. The two original call sites are:
