@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest direct runtime milestone: **five sparse ordinary-gameplay timer samples at ~50 FPS** show x21+0x100 equals 20.0–23.0 ms of physical-counter ticks; V9's four-tick clamp was **not reached** in this unmodified-game trace. Earlier 12 gameplay samples confirmed s0=s1=60.0 at the original frame-step division.
+> Latest direct runtime milestone: **sparse gameplay samples at both ~50 and ~30 FPS** show x21+0x100 tracking frame-like physical-counter durations (mean 22.106 and 33.450 ms respectively). All 10 samples were below V9's 4-tick cap. The next step is mapping the simulation multiplier consumers and update order; V9 remains failed.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -520,3 +520,38 @@ emulator speed to simulate a slow renderer. Independently verify that
 `+0x100` updates before every simulation `fdiv` and that its
 consumers advance all physics once per presented frame. There is still
 **no validated V10 patch**, and the 33FA writer path is unmapped.
+
+
+## 16. Second ordinary-gameplay clock test: around 30 FPS (2026-11-06)
+
+The tester supplied `quiet_timer_snapshots_30fps.json`, with **five** E0F3
+cached-field snapshots separated by four seconds of resumed gameplay,
+while the FPS overlay read approximately **30 FPS**. The verified
+`CNTPCT_EL0`-derived `X21+0x100` field ranged **983,403–1,101,034 ticks**,
+or **31.469–35.233 ms** at 31.25 MHz, mean **33.450 ms**.
+The nominal 30 FPS period is 33.333 ms. The same field previously
+averaged **22.106 ms** in an about-50 FPS gameplay scene, giving
+clear FPS-dependent scaling across two independent workloads.
+
+The separate `+0x148` cached field stayed shorter, **19.275–20.498 ms**
+(mean 19.791 ms) instead of following the ~33 ms full-period candidate.
+The `+0x108` saved counter advanced by about **4.145–4.175 seconds**
+between captures, including debugger overhead. None of the five 30 FPS
+samples hit V9's four-tick cap threshold of 2,083,333 ticks.
+If read fresh in V9, these unpatched game timer values would yield
+**1.888–2.114 nominal 60-Hz simulation ticks**, close to 2.0, not 4.0.
+The previous universal 'absolute timestamp / always saturated' theory
+is therefore inconsistent with these *unmodified* gameplay runs,
+but V9's observed speed-up is NOT explained or fixed by these tests.
+
+**Next is no longer another timer snapshot.** Map the actual producer/consumer
+flow and update scheduling around E0F3 `fdiv s8,s1,s0` at
+`main+0x006E6CC4`. The newly authored read-only tool
+[`guest_frame_step_static_window.py`](guest_frame_step_static_window.py)
+captures a bounded 1,024-byte original-code excerpt, verifies seven
+original opcode fingerprints, never sets breakpoints, and resumes the
+guest. Five synthetic tests passed, but the tool has not run live.
+See [FRAME_STEP_WINDOW_GUIDE.md](FRAME_STEP_WINDOW_GUIDE.md)
+and [QUIET_GAMEPLAY_30FPS_TRACE.md](QUIET_GAMEPLAY_30FPS_TRACE.md).
+**Private code JSON must NOT be committed or published.** V9 is still
+failed, no validated V10 exists, and 33FA still needs mapping.
