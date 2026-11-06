@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest original-code milestone: a checksum-verified 1,024-byte E0F3 frame-step window proves explicit integer-to-float conversion of the FPS target, a conditional double accumulator of the calculated step at context+0xD58, and a direct call passing S8 into main+0x03B4E300. Earlier sparse gameplay samples at ~50/~30 FPS found frame-like +0x100 values (22.106/33.450 ms mean); V9 remains failed, and downstream update scheduling is unknown.
+> Latest original-code milestone: two SHA-256-verified private E0F3 windows show main+0x03B4E300 translates the S8 step into its reciprocal and rounded 60/step nominal rate (stored in timing config); the caller contains two flag-dependent sites updating the +0xD58 accumulator and calling the config routine. Frame-step cadence remains unverified. Earlier sparse ~50/~30 FPS samples found +0x100 physical-counter durations of 22.106/33.450 ms mean; V9 remains failed.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -597,3 +597,53 @@ publish the JSON.** See the guide in the trace note.
 
 No V10 is validated, do not touch published main/releases or publish a
 new ZIP, and no cross-build claim for 33FA follows from this capture.
+
+
+## 18. Time-step converts back to nominal FPS; two caller sites (2026-11-06)
+
+The tester privately supplied `frame_step_followup.json` for E0F3,
+containing SHA-256-verified static original game-code windows at
+`main+0x03B4E300` (384 instructions) and `main+0x006E6FE0`
+(448 instructions). The downstream function at `main+0x03B4E300`
+is a **timing-configuration converter**, not direct proof that a
+variable number of physics steps executes. It receives the caller's
+`S8` through `S0`, writes **`config+0x10 = step`** and
+**`config+0x14 = 1/step`**, updates another scaled float at `+0x18`,
+and stores a rounded integer **`60/step`** at `config+0x1C`.
+For positive steps, 1 -> 60, 2 -> 30, 3 -> 20, 4 -> 15; fractional
+steps may produce intermediate nominal rates. It recalculates many
+other related config floats and may call a virtual callback.
+The values accepted by actual downstream gameplay/physics code
+are **not established**.
+
+The **same callee is called at both `main+0x006E6DD8` and
+`main+0x006E70F8`** through flag-controlled control flow.
+The two paths also add `S8` to a double counter at
+`frame_context+0xD58`, using an associated atomic counter at
+`+0xD50`. Two static call sites are **not** proof of two executed
+physics updates per present. Whether one or both are reached during
+normal gameplay and what the accumulator represents remain unknown.
+A plausible contributor to V9 acceleration is unexpected reconfiguration
+of timing state or execution paths when `S8` becomes fractional,
+but the cause of the V9 failure remains **unknown**.
+
+See [FRAME_STEP_FOLLOWUP_ANALYSIS.md](FRAME_STEP_FOLLOWUP_ANALYSIS.md).
+The next opt-in diagnostic is
+[`guest_frame_step_cadence_probe.py`](guest_frame_step_cadence_probe.py),
+with synthetic tests at
+`tests/test_guest_frame_step_cadence_probe.py`. It resolves the
+`X19` context, `X21` FPS state and `X20` timing configuration at
+the original frame-step hook, verifies pointer relationships, removes
+the temporary breakpoint, then takes sparse **numeric-only** snapshots
+at multi-second intervals. Fields include `+0xD58` double accumulator,
+`+0xD50` counter, `+0xD38` flags, `config+0x10/+0x14/+0x18/+0x1C`,
+integer FPS at `X21+0x2C8`, and physical-counter timestamps. The
+accumulator difference is NOT an independently established physics
+call count. Tool has local synthetic tests, but live Eglantine behavior
+is still **unverified**.
+
+The user's confirmed baseline is that the unmodified game **runs in
+slow motion below 60 actual FPS**; do not ask again. Failed V9
+accelerated at ~30 FPS. No stable main/release is modified; do not
+publish V10 or copyrighted game-code JSON. The second game build 33FA
+still lacks this detailed E0F3-specific runtime mapping.
