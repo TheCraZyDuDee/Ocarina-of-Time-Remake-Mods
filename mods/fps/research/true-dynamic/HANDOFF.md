@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest source-control-flow milestone: complete 2,816-byte private E0F3 frame-step excerpt proves flags at context+0xD38 BIT 1 selects distinct accounting paths: 0 -> first +1/+S8 config call, 1 -> second +1/+S8 config call. No in-window path from either call's continuation reaches the other; two sites do NOT imply two updates per invocation. Observed flags 0x0B and 0x2B both set bit 1; bit 5 is transiently LDSET/LDCLR around callbacks. V9's cause is still unknown; three independent patch changes remain confounded.
+> Latest offline V9 audit milestone: original E0F3 guard at main+0x03B4EF90 is TBNZ W8,#0 with exact branch target main+0x03B4F074, only 12 bytes before original presentation-argument load at main+0x03B4F080. V9 replaced the guard with NOP (forced fallthrough) and replaced load from [X20+0x48] with W1=1, in addition to the FDIV S8 hook. Their combined effects remain unisolated. A guarded 2048-byte read-only controller capture tool and synthetic tests are prepared on research branch; V10 not validated.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -835,3 +835,47 @@ confirmed V9 cause; remaining hypotheses focus on the native
 config callback, guard and presentation changes and what actually
 happens under V9, not a simple additive double count.
 No V10 is validated and original game code remains private.
+
+
+## 23. V9 controller skip region target and original window inspector (2026-11-06)
+
+Continued direct source-level work. Independently decoded original E0F3
+`main+0x03B4EF90` instruction `0x37000728` as
+**`TBNZ W8,#0,main+0x03B4F074`**; branch displacement is
+**+0xE4 (228 bytes)** and target is **12 bytes before** V9's second
+edited original instruction `main+0x03B4F080`,
+`LDR W1,[X20,#0x48]`. Failed V9 set the former to **NOP**
+(unconditional fallthrough) and the latter to **MOV W1,#1**,
+alongside its separate `FDIV S8` replacement. This documents the
+exact skipped control-flow region but **not its meaning**.
+It strengthens the need to isolate guard and presentation changes
+before attributing V9 too-fast gameplay to the timer or callback.
+
+The newly authored, E0F3-only read-only
+[`guest_v9_controller_window.py`](guest_v9_controller_window.py)
+checks original frame-step and guard/presentation fingerprints,
+then captures a bounded 2048-byte original-code window spanning both
+controller edits. Synthetic tests are at
+`tests/test_guest_v9_controller_window.py`, and passed GitHub CI.
+The file it creates `v9_controller_original.json` contains PRIVATE
+copyrighted guest instructions, and **must never go to GitHub**.
+This capture does not patch game memory or require loading a save;
+it does require the user to relaunch Eglantine at GDB initial stop.
+See [V9_CONTROLLER_PREP.md](V9_CONTROLLER_PREP.md).
+
+The user's two private NSO files remain ZBIC-compressed; unlike
+standard zstd, ZBIC uses a modified entropy table encoding, so the
+stock `zstd` CLI could not decode those segments (the attempt was
+unsuccessful). A licensed local `zbic` package was not installed,
+so whole-executable static inspection could not proceed in this
+session. The previously supplied frame-step private code windows
+were independently SHA-256 verified and their CFG decoded again;
+no original copyrighted dumps, instruction windows or guessed V10
+IPS were published.
+
+**If resuming active interactive work**, either acquire a verified
+ZBIC-aware local decompression environment for the user's own dumps,
+or ask once for the purpose-specific private controller code window
+`v9_controller_original.json`. Do not repeat timer/FPS baseline
+samples; those questions are answered. Keep research branch only,
+never modify `main` or published releases.
