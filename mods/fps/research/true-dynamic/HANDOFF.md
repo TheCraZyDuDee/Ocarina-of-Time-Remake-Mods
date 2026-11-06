@@ -445,3 +445,37 @@ Tests are synthetic only; no live capture yet. User should supply the
 private `timer_import_target.json`, **not commit it**. Keep stable
 releases untouched and do not produce V10 until units, frame scope,
 and actual simulation update cadence are verified.
+
+## 14. Timer import resolved: physical counter identified (2026-11-06)
+
+**New direct evidence; not yet a working dynamic FPS mod.** The tester ran
+`guest_timer_import_target.py` after loading gameplay on E0F3. Its private
+256-byte capture passed SHA-256 validation. The original import stub at
+`main+0x03C41FD0` obtains an out-of-main function pointer through
+`main+0x04CBF1B0`. At the resolved function, the first instruction is
+**`MRS X0, CNTPCT_EL0`**, immediately followed by `RET`.
+A nearby clock-frequency helper returns **31,250,000** (`0x01DCD650`),
+consistent with the Switch 2 guest's physical counter rate.
+
+Combined with the private original writer window, the `+0x100` producer
+computes a **difference of physical-counter readings**:
+at `main+0x0346C7E0` it calls the clock, subtracts the saved
+`[X19+0x108]` reading, stores the delta to `[X19+0x100]` at
+`main+0x0346C7EC`, then calls the clock again and refreshes
+`[X19+0x108]` at `main+0x0346C7F4`. The writer is conditional and
+there is a separate partial-duration field at `+0x148`.
+The watchpoint on `X21+0x100` hitting this writer links those two
+views during that gameplay capture.
+
+**Crucial distinction:** timer *provenance and likely units* are now
+established, but the field is not yet proven to contain the **complete
+elapsed time per presented frame**, nor to refresh before each frame-step
+`fdiv`. V9's real gameplay failure is unchanged; no new IPS is justified.
+The former observation that no `MRS CNTPCT_EL0` appeared in original
+**main** text does not contradict an import through a separate module.
+
+See [COUNTER_SOURCE_CONFIRMED.md](COUNTER_SOURCE_CONFIRMED.md).
+Next: capture cached durations at intervals of **uninterrupted gameplay**
+using a sparse read-only debugger snapshot (not writer watchpoints), while
+cross-checking actual FPS independently. Do not publish private code windows
+or resolved guest addresses. Base 33FA target remains unmapped.
