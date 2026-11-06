@@ -2,9 +2,9 @@
 
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
-> Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest first-build milestone: AN ACTUAL installable E0F3-only experimental isolated-step ZIP was created PRIVATELY in current chat: OOT_Remake_True_Dynamic_FPS_Isolated_Step_E0F3_V10_TEST.zip, final ZIP SHA256 82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c. Recovered prior V9 actual IPS from user FILE LIBRARY and removed ONLY its two known controller edit records, retaining the simulation hook + 16 independently authored helper instructions + 3 trampoline B words. Entire helper reassembled independently and matched, all trampoline targets/IPS records checked. E0F3 IPS SHA256 306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365; 20 records/209 bytes. Bypassed restricted ZBIC environment without publishing original game bytes. Still EXPERIMENTAL, NOT GAMEPLAY VALIDATED, V9 OVER-SPEED CAUSE UNKNOWN.
-> Updated **2026-11-06**. Keep working on branch
+> Status: **FIRST SUCCESSFUL LIVE E0F3 V10 PLAYTEST (2026-11-07)**; user reports apparently normal gameplay speed at ~10–15 and ~30–45 actual FPS. Formal whole-game accuracy and 33FA not yet validated.
+> Latest milestone: USER PLAYTEST REPORTS that private E0F3 isolated-step V10 behaves at normal speed with variable actual rendering around 10–15 and 30–45 FPS; the previous failed V9 did not. This is user-reported qualitative live gameplay success, not a precise timed all-systems proof. Freeze original V10 ZIP SHA256 82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c and IPS SHA256 306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365. No stable/main release or 33FA validation yet. Exact source-only IPS reproducer and synthetic tests now exist; no Nintendo original code committed.
+> Updated **2026-11-07**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
 
@@ -1168,3 +1168,58 @@ isolation result; continue research rather than releasing it.
 This time the original V9 IPS library artifact removed the need to
 have `zbic` installed. The user was explicitly given a direct
 chat download artifact instead of asked to do local build steps.
+
+
+## 29. FIRST SUCCESSFUL E0F3 V10 LIVE PLAYTEST (2026-11-07)
+
+**User result: working in practice.** Following delivery of the private
+`OOT_Remake_True_Dynamic_FPS_Isolated_Step_E0F3_V10_TEST.zip`, the
+user states that real gameplay **dynamically maintains apparently
+normal speed** with variable actual FPS, specifically around
+**10–15** and **30–45 FPS**. In their words, it appears to be a
+"total success". This is strong *qualitative actual-gameplay*
+confirmation that the isolated-step V10 differs from the earlier
+FAILED V9 combined patch, which ran much too fast at ~30 FPS.
+**Do NOT re-ask the user why dynamic FPS is needed**, and do NOT
+claim V10 failed: the latest E0F3 live evidence is POSITIVE.
+
+**Crucial evidence scope:** this was the user's experience, not a
+stopwatch study of physics/animations/game time across all scenes,
+not an assistant-run emulator test, and not evidence for 33FA.
+Avoid promising universally correct frame pacing or exact speed
+below 15 FPS. The unchanged source helper clamps S8 to 0.5–4.0;
+a *simple* once-per-render 10 FPS model would imply only ~40
+nominal simulation units per second. The real user's 10–15 FPS
+observation can still be correct given unknown engine callback
+frequency and measurement resolution; **do not assume the overlay
+counts per-step calls**. Document this as a future optional sanity
+check, not grounds for immediately rewriting an apparently working mod.
+
+**Freeze the tested binary**: E0F3 V10 ZIP SHA256
+`82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c`,
+E0F3 IPS SHA256
+`306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365`.
+Original controller guard and presentation loads remain untouched;
+there is no good reason to change the 16 instruction helper, cave
+addresses or bounds while it behaves well for this tester.
+
+**Maintainability work completed:** source-only
+[`reproduce_v10_ips_from_v9_archive.py`](reproduce_v10_ips_from_v9_archive.py)
+reproduces this exact 209-byte IPS from the user's own archived V9
+research ZIP, with strict original ZIP and IPS SHA-256, 22-site
+fingerprint, helper reassembly, four branch-target checks and
+final V10 IPS SHA-256. Only two unrelated controller edits are
+removed. Synthetic tests in
+`tests/test_reproduce_v10_ips_from_v9_archive.py` passed GitHub CI.
+The original ZIP/NSO remains private and no binary was pushed to
+GitHub.
+
+See [V10_FIRST_SUCCESSFUL_PLAYTEST.md](V10_FIRST_SUCCESSFUL_PLAYTEST.md),
+[FIRST_V10_TEST_ZIP_PROVENANCE.md](FIRST_V10_TEST_ZIP_PROVENANCE.md).
+Next phase: **stabilization and selective verification**, not
+another cycle of exploratory 128-byte GDB captures or guesswork.
+If user wishes to promote the E0F3 version to stable release, seek
+explicit consent and do final packaging checks. If practical, ask
+only for a brief observation of menu/cutscene/loads, or a timed
+sub-15 FPS test—not a large intrusive diagnostic campaign.
+33FA remains untested and should not receive a guessed patch.
