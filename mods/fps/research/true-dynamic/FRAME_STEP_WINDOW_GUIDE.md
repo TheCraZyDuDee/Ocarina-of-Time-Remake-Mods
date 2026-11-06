@@ -17,9 +17,10 @@ seven exact original source fingerprints. It does not modify game code,
 install any FPS patch, or set breakpoints. It resumes the debugger guest
 on exit, even after an error.
 
-This is **E0F3-only**; it deliberately rejects other build IDs. Its
-five synthetic tests validate the read bounds and failure guards, but
-it has not yet run against the tester's current emulator version.
+This is **E0F3-only**; it deliberately rejects other build IDs. Five synthetic tests were added for the read bounds and failure guards;
+local isolated capture tests passed, but the new repository test file has
+not been run as part of the full CI suite, and the tool has not yet
+run against the tester's emulator.
 The resulting JSON includes **copyrighted game instruction words**:
 keep it private and **never commit it to GitHub**.
 
