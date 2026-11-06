@@ -550,7 +550,9 @@ flow and update scheduling around E0F3 `fdiv s8,s1,s0` at
 [`guest_frame_step_static_window.py`](guest_frame_step_static_window.py)
 captures a bounded 1,024-byte original-code excerpt, verifies seven
 original opcode fingerprints, never sets breakpoints, and resumes the
-guest. Five synthetic tests passed, but the tool has not run live.
+guest. Five synthetic tests were added; isolated local capture checks passed,
+but the new repository tests have not been run in full CI and the tool
+has not run live.
 See [FRAME_STEP_WINDOW_GUIDE.md](FRAME_STEP_WINDOW_GUIDE.md)
 and [QUIET_GAMEPLAY_30FPS_TRACE.md](QUIET_GAMEPLAY_30FPS_TRACE.md).
 **Private code JSON must NOT be committed or published.** V9 is still
