@@ -59,6 +59,10 @@ def construct_ips(data, helper_words, *, cave_picker=None):
     caves = cave_picker(data, hook, len(helper_words))
     if not caves:
         raise ValueError("No verified code cave available")
+    # A candidate cave picker may return an incomplete list; reject it
+    # before assembling any records or indexing the nonexistent next cave.
+    if sum(max(0, capacity) for _, capacity in caves) < len(helper_words):
+        raise ValueError("Insufficient code-cave capacity")
     records = {}
     used = []
     pos = 0
