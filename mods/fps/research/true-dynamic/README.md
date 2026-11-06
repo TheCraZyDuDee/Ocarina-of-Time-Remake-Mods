@@ -6,6 +6,19 @@ Goal: keep *Ocarina of Time* simulation at normal real-time speed while rendered
 
 This is separate from the [working FPS mods](../../README.md). **Do not replace them with any of the failed experiments.**
 
+## Resume in another chat or with another AI
+
+**[Read the complete technical handoff first](HANDOFF.md).** It contains
+the goal, all supported executable build IDs, every user-reported result,
+verified instruction maps, tooling and regression tests, security/licensing
+rules, unresolved questions, and a copy-ready prompt for a successor.
+
+For the newest confirmed static finding, use
+[`inspect_frame_step.py`](inspect_frame_step.py). It checks the actual
+`(60 or 30) / target_fps` calculation in both builds against pristine
+NSO segment hashes, while correctly reporting that the V9 timing
+input and runtime behavior are **unverified**.
+
 ## What we learned from testing
 
 | Experiment | Observed result | Lesson |
