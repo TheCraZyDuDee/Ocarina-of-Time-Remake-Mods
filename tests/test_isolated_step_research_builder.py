@@ -90,7 +90,10 @@ class IsolatedStepBuilderTests(unittest.TestCase):
     def test_output_is_private_opt_in_zip_and_never_overwrites(self):
         with tempfile.TemporaryDirectory() as t:
             out = Path(t) / "research.zip"
-            with patch.object(candidate.previous, "load_nso", return_value=synthetic_module()),                  patch.object(candidate.previous, "assemble", return_value=WORDS),                  patch.object(candidate.previous, "find_caves", side_effect=cave_picker):
+            with patch.object(candidate, "load_verified_inspection_image", return_value=synthetic_module()), \
+                 patch.object(candidate, "validate_inspection_image", return_value=[]), \
+                 patch.object(candidate.previous, "assemble", return_value=WORDS), \
+                 patch.object(candidate.previous, "find_caves", side_effect=cave_picker):
                 result = candidate.generate_zip(Path(t) / "private.nso", out)
                 self.assertEqual(result["ips_instruction_records"], len(WORDS) + 2)
                 self.assertTrue(out.exists())
