@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest direct runtime milestone: **sparse gameplay samples at both ~50 and ~30 FPS** show x21+0x100 tracking frame-like physical-counter durations (mean 22.106 and 33.450 ms respectively). All 10 samples were below V9's 4-tick cap. The next step is mapping the simulation multiplier consumers and update order; V9 remains failed.
+> Latest original-code milestone: a checksum-verified 1,024-byte E0F3 frame-step window proves explicit integer-to-float conversion of the FPS target, a conditional double accumulator of the calculated step at context+0xD58, and a direct call passing S8 into main+0x03B4E300. Earlier sparse gameplay samples at ~50/~30 FPS found frame-like +0x100 values (22.106/33.450 ms mean); V9 remains failed, and downstream update scheduling is unknown.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -67,7 +67,7 @@ decompressed* NSOs; no game binary is committed.
 The original frame-step path (actual instructions verified in **both** builds):
 - `x8 = [frame_context + 0xA8]`,
   `x21 = [x8 + 0x20]` (FPS state object).
-- The static code contains a float load from `[x21+0x2C8]`, but the first live debugger trace found **raw bits `0x0000003c` there**. That is uint32 60, *not* the floating-point encoding of 60. The **live s0 value at this division is now verified as 60.0** (12/12 gameplay samples), although the origin/lifetime of that value is **not** traced back to this field. The earlier "current FPS target" label was wrong.
+- The `LDR S0,[X21,#0x2C8]` instruction loads raw bits `0x0000003c` (integer 60, not a float32 encoding). A subsequent **`SCVTF S0,S0` at E0F3 `main+0x006E6CA8`** numerically converts that 32-bit integer to floating-point 60.0. This directly reconciles the old raw-field reading with live `s0=60.0` in 12/12 gameplay samples. The field is now a confirmed integer input for this E0F3 frame-step expression; do not extrapolate its broader lifetime or identical instruction location to uninspected 33FA code.
 - `s1` is selected as **60.0 or 30.0**, based on a state flag.
 - `fdiv s8,s1,s0` is the exact original instruction; **the live gameplay values are s0=60.0 and s1=60.0 (12/12), so the immediate divide result is 1.0**. Do not treat surrounding loads as proof of a simulation-step formula in every path.
 - `s8` is subsequently used by the frame-update machinery; its exact
@@ -557,3 +557,43 @@ See [FRAME_STEP_WINDOW_GUIDE.md](FRAME_STEP_WINDOW_GUIDE.md)
 and [QUIET_GAMEPLAY_30FPS_TRACE.md](QUIET_GAMEPLAY_30FPS_TRACE.md).
 **Private code JSON must NOT be committed or published.** V9 is still
 failed, no validated V10 exists, and 33FA still needs mapping.
+
+
+## 17. First static frame-step downstream consumers identified (2026-11-06)
+
+The tester supplied a **private, SHA-256-verified 1,024-byte E0F3 code
+window** spanning `main+0x006E6BE0` to `main+0x006E6FDC`.
+Disassembly establishes that `LDR S0,[X21,#0x2C8]` at
+`main+0x006E6C98` is followed by **`SCVTF S0,S0` at
+`main+0x006E6CA8`**. This resolves the earlier apparent conflict
+between raw integer 60 (`0x0000003c`) and live denominator
+`S0=60.0`. The selected numerator (60 or 30) is divided by the
+converted integer target at `main+0x006E6CC4` to produce `S8`.
+
+On a **conditional** path, `S8` is converted to double and added
+to the accumulator at `frame_context+0xD58`, with an associated
+atomic counter at `+0xD50`. The original code also executes
+`FMOV S0,S8` at `main+0x006E6DCC`, then calls
+**`main+0x03B4E300`** at `main+0x006E6DD8` with `X0` sourced
+from a previously loaded global pointer. Other flag-controlled
+branches bypass or reorder this path; the callee's role and full
+simulation update call count remain **unverified**.
+
+The user's baseline statement is explicit and should **not be asked
+again**: with **no dynamic FPS mod**, the game **runs in slow motion
+whenever actual rendering falls below 60 FPS**. The whole purpose is
+normal *real-time* simulation despite reduced displayed FPS. The V9
+patch caused the opposite failure, excessive game speed around 30 FPS.
+
+See [FRAME_STEP_CONSUMERS_FIRST_TRACE.md](FRAME_STEP_CONSUMERS_FIRST_TRACE.md).
+The new [guest_frame_step_followup.py](guest_frame_step_followup.py)
+reads two short original-code windows around the direct downstream
+callee `main+0x03B4E300` and the remaining part of the calling
+function, *only after verifying original E0F3 fingerprints*.
+Source-only synthetic tests are under
+`tests/test_guest_frame_step_followup.py`; current live Eglantine
+validation is pending. **Capture is private Nintendo code: never
+publish the JSON.** See the guide in the trace note.
+
+No V10 is validated, do not touch published main/releases or publish a
+new ZIP, and no cross-build claim for 33FA follows from this capture.
