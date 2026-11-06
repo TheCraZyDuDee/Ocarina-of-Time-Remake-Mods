@@ -825,6 +825,11 @@ transient in-progress state, **not established as another timing mode**.
 Meaning of other writers and runtime conditions still unknown.
 
 See [E0F3_FRAME_STEP_BRANCH_GRAPH.md](E0F3_FRAME_STEP_BRANCH_GRAPH.md).
+The source-only [frame_step_cfg_audit.py](frame_step_cfg_audit.py) can
+reproduce bounded branch reachability from the two privately retained,
+SHA-256-verified JSON code windows; its test fixture is entirely
+synthetic at `tests/test_frame_step_cfg_audit.py` (GitHub CI passed).
+It prints structural results only, never the copyrighted code bytes.
 This removes double counting merely from two static code sites as a
 confirmed V9 cause; remaining hypotheses focus on the native
 config callback, guard and presentation changes and what actually
