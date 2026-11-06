@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest first-build milestone: both privately uploaded original E0F3/33FA NSOs were confirmed ZBIC (NSO flags 0xFF; all three sections start 'ZBIC'). Kinnay's GPL-2 ZBIC Python package 1.0.1.post1 has Linux wheels. The research code now includes a one-shot private E0F3 builder that decodes the original compressed NSO IN MEMORY, verifies all 3 SHA-256 segment hashes, verifies original instructions and caves, and creates only an isolated-step test ZIP; no decrypted NSO is stored. Synthetic end-to-end CI passes. Real package unavailable in current restricted container, so NO real IPS ZIP/gameplay verification yet.
+> Latest first-build milestone: AN ACTUAL installable E0F3-only experimental isolated-step ZIP was created PRIVATELY in current chat: OOT_Remake_True_Dynamic_FPS_Isolated_Step_E0F3_V10_TEST.zip, final ZIP SHA256 82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c. Recovered prior V9 actual IPS from user FILE LIBRARY and removed ONLY its two known controller edit records, retaining the simulation hook + 16 independently authored helper instructions + 3 trampoline B words. Entire helper reassembled independently and matched, all trampoline targets/IPS records checked. E0F3 IPS SHA256 306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365; 20 records/209 bytes. Bypassed restricted ZBIC environment without publishing original game bytes. Still EXPERIMENTAL, NOT GAMEPLAY VALIDATED, V9 OVER-SPEED CAUSE UNKNOWN.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -1107,3 +1107,64 @@ non-proprietary result/error, not a further GDB capture. The first
 candidate still needs actual game-time and physics-speed validation
 before claiming it works. Stable main, 33FA release and original
 Nintendo files remain untouched/unpublished.
+
+
+## 28. E0F3 first private experimental ZIP actually built (2026-11-06)
+
+USER REQUEST: provide a genuine installable mod ZIP, not just source or
+one more local build procedure. Found that the private **Library**
+contains the original tested-but-failed
+`OOT_Remake_V9_RealElapsed_Delta_Probe_Both_Builds_Experimental.zip`.
+Using its independently authored E0F3 IPS32 records, produced
+`OOT_Remake_True_Dynamic_FPS_Isolated_Step_E0F3_V10_TEST.zip`
+in the current conversation's sandbox and sent a download link.
+**Never commit the binary ZIP to GitHub, and do not promote it to
+stable main/release before gameplay verification.**
+
+The archived V9 ZIP's E0F3 IPS had 22 records. Removed **exactly**
+original controller guard edit `main+0x03B4EF90` and presentation
+argument edit `main+0x03B4F080`. Retained precisely **20** records:
+one original frame-step hook `main+0x006E6CC4`, **16** independently
+authored AArch64 elapsed-tick helper instructions and **three**
+inter-cave return branches; original controller remains unchanged.
+The known helper chain is
+`0x006E6CC4 → 0x006E1864 → 0x006E0F04 → 0x006F1804 → 0x006E6CC8`.
+
+Local checks verified that the archived V9 ZIP is CRC-clean, its IPS
+has the exact known 22 instructions, the controller edits had their
+expected V9 replacements, the derived 20-record IPS parses back
+exactly, only the known hook/cave offsets remain, all four branches
+reach the expected locations, and the 16 helper instructions match
+**100%** against independently compiling the originally authored
+AArch64 assembly with local `clang` and `llvm-objcopy`.
+Final ZIP has only one E0F3 IPS, README and AUDIT JSON; ZIP CRC
+passed. No Nintendo original code, saves or NSO included. The 33FA
+variant is intentionally excluded (unmapped downstream).
+
+- Original private V9 ZIP SHA-256:
+  `061d7d2fccf0d657a64ffa8e4b1c789efa16c056810c359137b6593b5fd08178`.
+- Original E0F3 V9 IPS SHA-256:
+  `207519e2fe0bb2895732b6d5f8e43fbf3d5f90af32f2df36650192438c02f847`.
+- Derived E0F3 IPS SHA-256:
+  `306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365`.
+- Final private ZIP SHA-256:
+  `82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c`.
+
+See [FIRST_V10_TEST_ZIP_PROVENANCE.md](FIRST_V10_TEST_ZIP_PROVENANCE.md)
+for installation scope, patch provenance, branch graph and tests.
+**CRITICAL: this is a FIRST EXPERIMENTAL BUILD, not a verified
+working true-dynamic-FPS mod**. No gameplay test in Eglantine was
+available to the assistant. The user previously observed V9 too-fast
+speed; the current isolated experiment may still fail, because V9's
+root cause is unresolved. Please do not tell the user it's proven to
+keep correct time at variable actual FPS. Test only on E0F3 with
+backed-up saves, 100% emulator speed, all other FPS mods disabled;
+verify gameplay speed at ~60, ~45, ~30 and ~15 FPS and menus/loads.
+If sped-up/slowed-down behavior recurs, treat as a valuable failure
+isolation result; continue research rather than releasing it.
+
+**Important alternative build path** is still available in
+[ZBIC_DECOMPRESSION_AND_BUILD.md](ZBIC_DECOMPRESSION_AND_BUILD.md).
+This time the original V9 IPS library artifact removed the need to
+have `zbic` installed. The user was explicitly given a direct
+chat download artifact instead of asked to do local build steps.
