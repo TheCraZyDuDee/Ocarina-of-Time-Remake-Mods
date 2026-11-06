@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest runtime milestone: six E0F3 unmodified-game numeric snapshots at ~30 FPS show the frame-context +0xD50 integer counter and +0xD58 double accumulator equal at all six points and rising together by 591 units over five requested 4-second free-running intervals (~29.55 per requested running second). Timing configuration remains step=1.0, nominal rate=60 throughout. This supports why original gameplay slows below 60 FPS, but does not yet count actual physics calls or solve failed V9.
+> Latest runtime milestone: eight short E0F3 gameplay timing-config callsite breakpoint hits ALL went through main+0x006E70F8 (none at main+0x006E6DD8), with flags 0x0B, S0=S8=1.0, integer FPS target 60, and D50 counting +1 per hit. V9 remains failed; its fractional S8 could generate non-divisor-of-60 nominal rates even when the game is near 30 FPS. This compatibility concern is mathematical, NOT a proven failure cause.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -699,3 +699,39 @@ modify guest instructions while armed, then are removed. The probe
 has passed synthetic GitHub CI but has not run live on the user's
 Eglantine build. No new IPS is justified yet and no private code JSON
 belongs on GitHub.
+
+
+## 20. Actual E0F3 gameplay config callsite identified (2026-11-06)
+
+The tester privately supplied numeric-only `frame_step_paths_30fps.json`
+from unmodified E0F3 gameplay at approximately 30 displayed FPS.
+**All eight consecutive GDB breakpoint hits** were at the **later
+`main+0x006E70F8`** call to timing-config converter
+`main+0x03B4E300`. **Zero** hit the alternate
+`main+0x006E6DD8` during this short observation.
+All eight: frame flags `X19+0xD38 = 0x0B`, original `S8=1.0`,
+incoming `S0=1.0`, integer FPS target 60. The `X19+0xD50`
+integer counter advanced **4579, 4580, ..., 4586** (+1 between each
+successive hit). This strongly associates the active callsite with
+normal +1 update accounting, but **breakpoints perturb timing**;
+it is not an independently verified per-present/physics-call count.
+The alternate site may operate in other phases; cannot conclude it
+is unused everywhere. No special bit meaning is established for
+`0x0B` vs sparse `0x2B` flags.
+
+**New conditional V9 concern:** the converter derives a rounded
+integer `nominal_rate ~= 60/S8`. If V9 read the same *fresh unpatched*
+physical-counter values captured near 50 and 30 FPS, the offline
+rounded rates would be **50,44,46,43,44** and **32,31,29,30,28**.
+**9 of 10** are non-divisors of 60; the game also has a separate
+confirmed general FPS setter that rejects non-divisors. We have **NOT**
+proven the converter's config rate is passed to that setter in live
+execution. V9 was not live-traced, and its causes remain unknown.
+There are three V9 alterations—frame-rate guard, presentation argument,
+and original divide—so do not attribute overspeed to the timer alone.
+
+See [FRAME_STEP_PATH_30FPS_FIRST_TRACE.md](FRAME_STEP_PATH_30FPS_FIRST_TRACE.md).
+**Next priority is source-only configuration-consumer/guard auditing,
+not repeating GDB baseline sampling.** Do not build V10 or reinstall
+failed V9 just to make guesses. Keep both builds in scope; live trace
+only covers E0F3.
