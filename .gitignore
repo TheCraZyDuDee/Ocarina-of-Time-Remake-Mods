@@ -1,0 +1,26 @@
+# Local builds and Python cache
+/dist/
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Never commit decrypted game data or console secrets
+*.nso
+*.nca
+*.nsp
+*.xci
+*.xcz
+*.ncz
+*.kip
+*.keys
+prod.keys
+title.keys
+main
+main([0-9]*)
+eden_log*.txt
+*.log
+
+# Personal verification files
+/private/
+/dumps/
