@@ -1,6 +1,20 @@
-# V9 interval-controller original branch: verified target and next bounded audit
+# V9 interval-controller original branch: original code capture completed
 
 **Source-only investigation, 2026-11-06. No V10 patch or release.**
+
+## Capture completed (2026-11-06)
+
+The tester supplied the requested **2,048-byte original E0F3 controller
+window** in private chat. The SHA-256 and guard/presentation source
+fingerprints match. The capture is no longer pending and must **not**
+be uploaded to GitHub. Its verified findings, including the native
+`60/interval` rate setter and native `interval` presentation setter,
+are documented in
+[V9_CONTROLLER_CAUSAL_TRACE.md](V9_CONTROLLER_CAUSAL_TRACE.md).
+The material below is retained as the historical collection procedure;
+**do not ask the tester to repeat this capture**. The remaining
+uncertainty is the live V9 interval value and callback feedback.
+
 
 This audit uses the archived V9 builder's independently verified original
 E0F3 fingerprints and the already documented active frame-step path.
