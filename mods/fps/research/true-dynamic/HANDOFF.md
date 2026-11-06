@@ -479,3 +479,12 @@ Next: capture cached durations at intervals of **uninterrupted gameplay**
 using a sparse read-only debugger snapshot (not writer watchpoints), while
 cross-checking actual FPS independently. Do not publish private code windows
 or resolved guest addresses. Base 33FA target remains unmapped.
+
+The next opt-in read-only probe is [`guest_timer_quiet_snapshot.py`](guest_timer_quiet_snapshot.py),
+with synthetic tests in `tests/test_guest_timer_quiet_snapshot.py`.
+It temporarily locates `X21` at the original `fdiv`, removes its breakpoint,
+then lets the game run for several seconds between brief debugger interrupts
+and reads only numeric fields `+0x100`, `+0x108`, `+0x148`, `+0x150`.
+It has NOT yet been run live; the observations are sparse cached values,
+not an unbiased FPS profiler. See the commands in
+[COUNTER_SOURCE_CONFIRMED.md](COUNTER_SOURCE_CONFIRMED.md).
