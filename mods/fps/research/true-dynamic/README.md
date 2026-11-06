@@ -62,6 +62,43 @@ New read-only tools:
 Static evidence does **not** show which controller runs during menus versus
 gameplay. A safe hook into the actual simulation dispatcher is still required.
 
+## Experimental V9 elapsed-time probe (source only)
+
+A new [read-only validated local builder](real_elapsed_probe_builder.py) targets
+the game's **main per-render simulation multiplier**. A similar instruction
+sequence is present in **both** known executables:
+
+- E0F3: `main+0x006E6CC4`
+- 33FA: `main+0x006B5A08`
+
+The original step is `(60 or 30) / target_fps`. V8A left that step
+unchanged while forcing presentation interval 1, explaining the very fast
+menus and movement at higher FPS. V9 replaces that **one** floating-point
+division with a call-free helper that uses the game's cached elapsed
+counter ticks at `game_root->timing->last_frame_ticks` and the guest
+`CNTFRQ_EL0` frequency. Lichii explicitly configures Switch 2's guest
+frequency to **31.25 MHz**, rather than the older Switch's 19.2 MHz.
+
+V9 also retains V8A's known-good menu-unlocked presentation and native
+adaptive guard changes. The helper saves/restores x8 (live flags) and
+d0, leaves x9/x10 and LR untouched, and preserves stack alignment.
+
+The formula is intentionally **capped**:
+`clamp(base_hz * frame_ticks / tick_frequency, 0.5, 4.0)`.
+This can only aim for normal speed at approximately **15–60 FPS** in the
+60 Hz mode and **7.5–60 FPS** in the 30 Hz mode; it is **not** a completed
+0–60 solution. If the timestamp is stale or unavailable in some scenes,
+the result may be wrong, and the capped step may still break animations.
+It has not been tested in gameplay. Source validation and mathematical
+tests are **not** runtime proof.
+
+The test ZIP was built locally using the user's two original decompressed
+NSOs. **It is intentionally outside this repository**; do not copy it
+into `releases/` or create a tagged GitHub Release. Test only after
+backing up saves and disabling every other FPS mod.
+
+See the [source-only V9 tests](../../../../tests/test_elapsed_probe.py).
+
 ## Remaining work before another IPS
 
 1. Locate and verify **the actual per-frame simulation dispatcher**, rather than inferring simulation time from the present callback alone.
