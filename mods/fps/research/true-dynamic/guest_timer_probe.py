@@ -2,7 +2,7 @@
 """Read-only GDB-stub experiment: sample OoT's suspected timer field.
 
 Not a patch/mod. Stops the guest on the *original* frame-step instruction,
-reads three integer fields and one FPS float from a guest object, single-steps
+reads three integer fields and the raw bits of a fourth field, single-steps
 past the original instruction, then resumes. Tracing necessarily perturbs
 frame timing, so DO NOT use the sample for FPS or real-time speed benchmarks.
 
@@ -26,7 +26,7 @@ HOOKS = {
 REGS = [f"x{i}" for i in range(31)] + ["sp", "pc", "cpsr"]
 ORIGINAL_HOOK_INSN = 0x1E201828  # fdiv s8,s1,s0 (from original binary)
 READ_SIZES = {"field_100": (0x100, 8), "field_148": (0x148, 8),
-              "field_150": (0x150, 8), "target_fps": (0x2C8, 4)}
+              "field_150": (0x150, 8), "field_2c8": (0x2C8, 4)}
 
 
 class RSP:
@@ -75,6 +75,21 @@ class RSP:
             raise ValueError("Incomplete AArch64 register reply")
         d = dict(zip(REGS[:33], struct.unpack_from("<33Q", data)))
         d["cpsr"] = struct.unpack_from("<I", data, 33 * 8)[0]
+        # Eglantine's AArch64 GDB layout is 33 64-bit GPRs, one 32-bit
+        # CPSR, followed by 32 128-bit SIMD/FP registers (v0..v31).
+        # Read the *actual* inputs to fdiv s8,s1,s0 rather than assuming
+        # that an arbitrary x21 + 0x2c8 field is the FPS divisor.
+        vec_start = 33 * 8 + 4
+        if len(data) >= vec_start + 9 * 16:
+            for n in (0, 1, 8):
+                pos = vec_start + 16 * n
+                bits = struct.unpack_from("<I", data, pos)[0]
+                d[f"s{n}_bits"] = bits
+                val = struct.unpack_from("<f", data, pos)[0]
+                # The previous s8 register can be uninitialized/NaN.
+                # Always keep its raw bits, encode as JSON float only when finite.
+                if math.isfinite(val):
+                    d[f"s{n}"] = val
         return d
 
     def mem(self, guest_addr, size):
@@ -140,13 +155,24 @@ def parse_guest_sample(rsp, regs):
         raise ValueError("Invalid frame-state pointer at breakpoint")
     data = {name: rsp.mem(base + offset, size)
             for name, (offset, size) in READ_SIZES.items()}
-    fps = struct.unpack("<f", data["target_fps"])[0]
-    if not math.isfinite(fps):
-        raise ValueError("FPS target is not a finite float")
-    return {"field_100": struct.unpack("<Q", data["field_100"])[0],
-            "field_148": struct.unpack("<Q", data["field_148"])[0],
-            "field_150": struct.unpack("<Q", data["field_150"])[0],
-            "target_fps": fps}
+    # The first live menu report showed 0x0000003c at x21+0x2c8:
+    # integer 60, NOT a valid float FPS. Preserve the original raw
+    # representation and a separately labelled float interpretation.
+    # Do not infer the field's type, object ownership or lifecycle.
+    f32 = struct.unpack("<f", data["field_2c8"])[0]
+    raw = struct.unpack("<I", data["field_2c8"])[0]
+    out = {"field_100": struct.unpack("<Q", data["field_100"])[0],
+           "field_148": struct.unpack("<Q", data["field_148"])[0],
+           "field_150": struct.unpack("<Q", data["field_150"])[0],
+           "field_2c8_raw_u32": raw,
+           "field_2c8_float_interpretation": f32}
+    for index, label in ((0, "fdiv_denominator_s0"),
+                         (1, "fdiv_numerator_s1"),
+                         (8, "fdiv_prior_s8")):
+        if f"s{index}" in regs:
+            out[label] = regs[f"s{index}"]
+            out[label + "_raw_u32"] = regs[f"s{index}_bits"]
+    return out
 
 
 def determine_patterns(samples):
@@ -271,7 +297,7 @@ def main():
     if not samples:
         raise ValueError("No debugger samples")
     out = {"build_id": args.build_id, "phase": args.phase,
-           "note": "Breakpoint sampling perturbs frame timing; values' units are UNVERIFIED",
+           "note": "Breakpoint sampling perturbs frame timing; x21+0x2c8 type unverified; FP registers represent actual operands only when captured before fdiv",
            "samples": samples, "summary": determine_patterns(samples)}
     if args.output:
         with open(args.output, "x", encoding="utf-8") as f:

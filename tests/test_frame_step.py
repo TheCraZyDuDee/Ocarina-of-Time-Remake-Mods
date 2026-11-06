@@ -18,10 +18,10 @@ class FrameStepChecks(unittest.TestCase):
         for build, sites in inspector.SITES.items():
             self.assertEqual(sites["sim_step_divide"][1], 0x1E201828)
             self.assertEqual(sites["base_rate_60_or_30"][1], 0x1E220C21)
-            self.assertEqual(sites["target_fps_float_at_state_2c8"][1], 0xBD42CAA0)
+            self.assertEqual(sites["float_load_near_state_2c8_unverified"][1], 0xBD42CAA0)
             self.assertEqual(sites["manager_pointer_at_context_a8"][1], 0xF9405408)
             self.assertEqual(sites["fps_state_from_manager_20"][1], 0xF9401115)
-            self.assertLess(sites["target_fps_float_at_state_2c8"][0], sites["sim_step_divide"][0])
+            self.assertLess(sites["float_load_near_state_2c8_unverified"][0], sites["sim_step_divide"][0])
             self.assertEqual(sites["first_instruction_after_hook"][0], sites["sim_step_divide"][0] + 4)
 
     def test_v9_timer_field_cannot_be_verified_from_static_fingerprints(self):

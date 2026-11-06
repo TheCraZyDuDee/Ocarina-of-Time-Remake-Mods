@@ -66,9 +66,9 @@ decompressed* NSOs; no game binary is committed.
 The original frame-step path (actual instructions verified in **both** builds):
 - `x8 = [frame_context + 0xA8]`,
   `x21 = [x8 + 0x20]` (FPS state object).
-- `s0 = *(float *)(x21 + 0x2C8)` (current FPS target).
+- The static code contains a float load from `[x21+0x2C8]`, but the first live debugger trace found **raw bits `0x0000003c` there**. That is uint32 60, *not* the floating-point encoding of 60. The identity/lifetime of `s0` at the division remains **unverified**. The earlier "current FPS target" label was wrong.
 - `s1` is selected as **60.0 or 30.0**, based on a state flag.
-- `fdiv s8,s1,s0`: **simulation step = base_rate / target_fps**.
+- `fdiv s8,s1,s0` is the exact original instruction; **the live values of s0/s1 have not yet been obtained**. Do not treat the surrounding loads as proof of a simulation-step formula in every path.
 - `s8` is subsequently used by the frame-update machinery; its exact
   effects on all physics/animations must still be verified.
 
@@ -220,7 +220,7 @@ A successor should:
    Do not guess from nearby offsets, names, or compiler layout.
 2. Use **non-invasive guest debugging or an emulator-side trace** at
    `main+0x006E6CC4` (E0F3) / `main+0x006B5A08` (33FA)
-   to record `target_fps`, `s8`, the supposed time sample,
+   to record actual live `s0`/`s1`/`s8`, the supposed time sample,
    and **actual present timestamps** during menus, save loading,
    and gameplay at ~15/30/45/60 FPS. Verify whether the frame-step
    function is called once per rendered frame.
@@ -298,7 +298,7 @@ rather than injecting another risky IPS. It temporarily breaks at the
 original simulation division (\`main+0x006E6CC4\` E0F3 or
 \`main+0x006B5A08\` 33FA), confirms the original instruction,
 samples \`FPS_state+0x100\`, \`+0x148\`, \`+0x150\` as 64-bit values and
-\`+0x2C8\` as the float target FPS, then restores the breakpoint and
+\`+0x2C8\` as **raw bits** (no assumed type), then restores the breakpoint and
 resumes the game. Source contains no private game data, executable
 copies or emulator GPL code.
 
@@ -342,3 +342,27 @@ See `GUEST_TIMER_TRACE.md` for exact Linux commands.
 preflight output or uploads a fresh current-launch `eden_log.txt`.
 Do not remove the verification check or generate V10 based on this
 error alone. No stable mod/release was changed.
+
+## 11. First Eglantine menu trace completed (2026-11-06)
+
+The tester supplied **12 consecutive GDB breakpoint samples** from menus
+on E0F3 after the original-instruction guard passed. Details, aggregate
+statistics and caveats are preserved in [MENU_TIMING_FIRST_TRACE.md](MENU_TIMING_FIRST_TRACE.md).
+
+- `x21+0x100` was about **25.6–26.0 million ticks** for 11 of 12
+  samples. At 31.25 MHz this is approximately 0.82–0.83 seconds,
+  overwhelmingly **debugger pause overhead**, not normal gameplay timing.
+- `x21+0x148` tracked `+0x100` within 209–384 ticks.
+- The decrease in `x21+0x150` closely tracked the **previous**
+  `+0x100` sample (correlation ~0.99996). This suggests the +0x100
+  field may actually be a frame duration rather than an absolute
+  counter; it still has **unverified units and write-site**.
+- `x21+0x2c8` was **raw 0x3c / integer 60** in all 12 samples.
+  The old script interpreted this as a tiny float 8.4e-44 and falsely
+  labeled it `target_fps`. This challenges the assumed dataflow.
+
+Corrected `guest_timer_probe.py` now captures actual AArch64
+floating-point `s0`, `s1` and `s8` register inputs in addition to
+raw `+0x2c8` field bits. It still uses temporary breakpoints,
+so measurement distortion remains. Obtain a fresh **gameplay trace**
+with the updated diagnostic before attempting V10.

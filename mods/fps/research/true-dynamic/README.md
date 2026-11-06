@@ -160,9 +160,20 @@ No generated patch, proprietary game data or GPL emulator code is included here.
 [\`guest_timer_probe.py\`](guest_timer_probe.py). This independently
 written, read-only helper uses the emulator's GDB stub to observe
 V9's suspected time field \`+0x100\` plus two nearby fields at the
-**original** frame-step hook. It also checks the float target FPS.
+**original** frame-step hook. It also checks the *raw bits* of the previously misidentified FPS field. The first live trace showed those bits equal integer 60, **not float 60.0**; an updated version now captures the actual floating-point operands directly.
 It never uploads or modifies game files; temporary debugger
 breakpoints alter execution timing during the measurement, so it
 cannot establish unbiased FPS. The script has been tested against a
 mocked local GDB stub, **not yet a real emulator**. A verified runtime
 trace is the missing prerequisite for designing V10 safely.
+
+## First live menu timing trace
+
+The first 12 real Eglantine breakpoint samples have been analyzed in
+[MENU_TIMING_FIRST_TRACE.md](MENU_TIMING_FIRST_TRACE.md). This is a
+**diagnostic milestone**, not a working V10. The samples show a strong
+relationship between the +0x100, +0x148 and +0x150 values, but stopping
+the game for each frame inflates the reported durations drastically.
+The supposed +0x2c8 “float target FPS” was actually read with bit pattern
+`0x0000003c` (integer 60, not float 60); this requires verifying the
+actual `s0` and `s1` inputs at the division instruction.

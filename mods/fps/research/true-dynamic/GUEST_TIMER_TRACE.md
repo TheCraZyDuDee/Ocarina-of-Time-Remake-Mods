@@ -19,7 +19,7 @@ at the **unmodified original** frame-step division, and reads only:
 
 - FPS state +0x100 (V9's **unverified** timer input);
 - FPS state +0x148 and +0x150 (nearby candidate timing fields);
-- FPS state +0x2C8 (the **current float target FPS**).
+- FPS state +0x2C8 (**raw four-byte value**; was incorrectly called a float target FPS in the original probe). The updated probe also reads the live `s0`, `s1` and `s8` register bits at the division.
 
 It takes at most 40 samples (default 12), removes the breakpoint and resumes
 guest execution. Each output is just numeric fields plus a derived pattern
@@ -166,3 +166,19 @@ If it is true, the user can retry the main 12-sample menu trace with
 the same **current** launch base, but the emulator must be relaunched
 between debugger sessions for predictable initial halt state.
 
+
+## First real menu run and corrected field labels
+
+The user successfully captured 12 menu samples with the original E0F3
+hook and reported the JSON. The underlying `+0x2c8` bytes were
+`0x0000003c` (integer 60), **not** floating-point 60.0. In addition,
+breakpoint overhead inflated `+0x100` to approximately 0.82 seconds
+in most samples. See [MENU_TIMING_FIRST_TRACE.md](MENU_TIMING_FIRST_TRACE.md).
+
+**Download the updated probe before collecting gameplay data.** The
+corrected JSON keys are `field_2c8_raw_u32`,
+`field_2c8_float_interpretation` and, when GDB supplies vector
+registers, `fdiv_denominator_s0`, `fdiv_numerator_s1` and
+`fdiv_prior_s8`. The actual register operands have not yet been
+measured in a live session; do not assume the x21 object field is the
+FPS divisor.

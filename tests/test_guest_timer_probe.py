@@ -51,6 +51,21 @@ class ProbeTest(unittest.TestCase):
         self.assertEqual(result["pc"], 32)
         self.assertEqual(result["cpsr"], 0x200001C5)
 
+    def test_actual_fdiv_operands_from_vector_registers(self):
+        gprs = [0] * 33
+        gprs[21] = 0x200000
+        gprs[32] = 0x816E6CC4
+        vector = bytearray(32 * 16)
+        struct.pack_into("<f", vector, 0 * 16, 30.0)
+        struct.pack_into("<f", vector, 1 * 16, 60.0)
+        struct.pack_into("<f", vector, 8 * 16, 2.0)
+        payload = struct.pack("<33QI", *gprs, 0) + bytes(vector)
+        parsed = probe.RSP(FakeSocket([frame(payload.hex())])).regs()
+        self.assertEqual(parsed["s0"], 30.0)
+        self.assertEqual(parsed["s1"], 60.0)
+        self.assertEqual(parsed["s8"], 2.0)
+        self.assertEqual(parsed["s0_bits"], 0x41F00000)
+
     def test_memory(self):
         value = probe.RSP(FakeSocket([frame("1122334455667788")])).mem(0x1000, 8)
         self.assertEqual(value, bytes.fromhex("1122334455667788"))
@@ -67,7 +82,23 @@ class ProbeTest(unittest.TestCase):
                 return data[addr]
         value = probe.parse_guest_sample(Mem(), {"x21": 0x200000})
         self.assertEqual(value["field_100"], 45_000_000)
-        self.assertEqual(value["target_fps"], 30.0)
+        self.assertEqual(value["field_2c8_raw_u32"], struct.unpack("<I", struct.pack("<f",30.0))[0])
+
+    def test_raw_60_is_not_float_60(self):
+        class Mem:
+            def mem(self, addr, size):
+                if addr == 0x2002C8:
+                    return struct.pack("<I",60)
+                return struct.pack("<Q",1_000_000)
+        sample = probe.parse_guest_sample(
+            Mem(), {"x21":0x200000, "s0":30.0,
+                     "s0_bits":0x41F00000, "s1":60.0,
+                     "s1_bits":0x42700000, "s8":2.0,
+                     "s8_bits":0x40000000})
+        self.assertEqual(sample["field_2c8_raw_u32"], 60)
+        self.assertLess(sample["field_2c8_float_interpretation"],1e-40)
+        self.assertEqual(sample["fdiv_denominator_s0"],30.0)
+        self.assertEqual(sample["fdiv_numerator_s1"],60.0)
 
     def test_saturation_pattern(self):
         samples = [{
