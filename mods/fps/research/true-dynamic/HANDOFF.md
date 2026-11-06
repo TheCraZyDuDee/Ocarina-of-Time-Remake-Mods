@@ -771,10 +771,23 @@ The model reproduces the archived V9 float32/clamp math and ordinary
 positive-step `60/step` rounding. **Its predicted nominal rates are
 not gameplay results or a confirmed emulator speed.**
 
-Next source-only priority is mapping the optional callback's consumers
-and the presentation-interval source `[X20+0x48]`. A verified live
-callback pointer/callee capture may eventually be required; do not
-request repeated baseline 30 FPS samples. The user has not provided
-new runtime data since the eight-hit callsite capture. No experimental
-V10 has been generated, no stable branch/release touched, and no
-private copyrighted instructions have been committed.
+A future opt-in read-only callback resolver was prepared:
+[guest_config_callback_resolver.py](guest_config_callback_resolver.py).
+Its six synthetic tests passed GitHub CI. The tool verifies seven
+original callback opcodes, reads the live optional object/vtable
+pointer and classifies the method location; it only captures 128
+private code bytes when the target lies in verified E0F3 main TEXT.
+It has **not** been live tested. See
+[CONFIG_CALLBACK_RESOLVER_GUIDE.md](CONFIG_CALLBACK_RESOLVER_GUIDE.md).
+The user need not perform anything right now unless the callback
+address becomes the next required runtime evidence.
+
+Further source-only priority is mapping the presentation-interval
+source `[X20+0x48]` and its guard's native controller semantics.
+Eventually a verified live callback pointer/callee capture, or a
+private ZBIC-decompressed, hash-checked E0F3 inspection image, is
+required to resolve its destination. Do not request repeated baseline
+30 FPS samples. The user has not provided new runtime data since the
+eight-hit callsite capture. No experimental V10 has been generated,
+no stable branch/release touched, and no private copyrighted
+instructions have been committed.
