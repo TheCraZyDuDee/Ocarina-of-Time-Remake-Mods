@@ -43,6 +43,25 @@ python3 mods/fps/research/true-dynamic/inspect_controller.py /path/to/your/decom
 
 Never commit dumps, keys, game assets or local emulator logs.
 
+## New: two timing controllers and shared rate validator
+
+[Two-controller research and code map](TWO_CONTROLLERS.md) identifies a separate
+FPS-target controller in both executable versions. It calls the **same** frame
+rate setter used by the native interval-based controller. The shared setter
+generally rejects targets that do not divide 60 Hz; a guarded 40+ FPS path
+may be relevant but has not been verified in gameplay.
+
+New read-only tools:
+- [`map_time_managers.py`](map_time_managers.py) — checks original opcode
+  fingerprints and three direct calls in both builds, without modifying game data.
+- [`frame_rate_acceptance.py`](frame_rate_acceptance.py) — models the
+  general-path FPS rejection/suggestion and guarded 40+ FPS validation.
+- [Regression tests](../../../../tests/test_time_manager_map.py) — executable-free
+  tests for branch decoding and rate acceptance.
+
+Static evidence does **not** show which controller runs during menus versus
+gameplay. A safe hook into the actual simulation dispatcher is still required.
+
 ## Remaining work before another IPS
 
 1. Locate and verify **the actual per-frame simulation dispatcher**, rather than inferring simulation time from the present callback alone.
