@@ -25,6 +25,9 @@ def synthetic_words():
     # Synthetic first path exits after its call, while second remains
     # reachable from the TBNZ true branch.
     words[cfg.FIRST_CALL + 4] = B(cfg.FIRST_CALL + 4, final)
+    # On the taken branch, bypass the synthetic first-call region.
+    # The REAL original game uses a longer conditional path instead.
+    words[cfg.GATE + 0x50] = B(cfg.GATE + 0x50, cfg.SECOND_CALL)
     return words
 
 
