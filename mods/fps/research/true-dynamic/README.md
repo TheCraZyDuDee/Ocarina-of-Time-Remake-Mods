@@ -177,3 +177,25 @@ the game for each frame inflates the reported durations drastically.
 The supposed +0x2c8 “float target FPS” was actually read with bit pattern
 `0x0000003c` (integer 60, not float 60); this requires verifying the
 actual `s0` and `s1` inputs at the division instruction.
+
+## First live gameplay timing milestone
+
+The updated [gameplay diagnostic](GAMEPLAY_TIMING_FIRST_TRACE.md)
+captured **12 real guest AArch64 register sets**: at the game's original
+`fdiv s8,s1,s0`, `s0=s1=60.0` throughout, so the division result is
+**1.0**. The emulator was delivering approximately 30 FPS at half game
+speed; that is compatible with an update-driven engine whose default
+step is fixed rather than responsive to actual FPS. This does **not**
+prove every subsystem update fires once per presented frame.
+
+The suspect `x21+0x100` timer field correlates with frame accounting,
+but the debugger inflated those samples to ~0.8s. This cannot yet
+explain V9 during uninterrupted play.
+
+The next source-only diagnostic is
+[`guest_timer_write_trace.py`](guest_timer_write_trace.py), with a
+[Linux Eglantine guide](GUEST_TIMER_WRITE_TRACE_GUIDE.md), using the
+emulator's write-watchpoint API to find the specific instruction
+that produces `x21+0x100`. Tests are synthetic and pass; **not yet
+tested live**. No experimental IPS should be made from these values
+alone.

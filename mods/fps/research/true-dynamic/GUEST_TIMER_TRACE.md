@@ -182,3 +182,20 @@ registers, `fdiv_denominator_s0`, `fdiv_numerator_s1` and
 `fdiv_prior_s8`. The actual register operands have not yet been
 measured in a live session; do not assume the x21 object field is the
 FPS divisor.
+
+## Gameplay follow-up, live (E0F3, 2026-11-06)
+
+The tester ran the updated probe in a loaded save and uploaded
+`gameplay_timing_v2.json`. The actual `s0` and `s1` operands
+were **60.0 and 60.0 in every one of 12 samples**. The original division
+thus computes **1.0**, even though the user's emulator produces about
+30 FPS at ~50% game speed. This shows no direct actual-FPS compensation
+at the observed division, but the full update cadence is not verified.
+
+The `+0x100` field was roughly 25–27 million paused-debugger ticks
+and its relationship to `+0x150` persists in gameplay. The sample
+sizes are dominated by GDB pause overhead, so **do not** interpret
+them as normal uninstrumented durations.
+
+See [first live gameplay analysis](GAMEPLAY_TIMING_FIRST_TRACE.md) and
+[the follow-up write-watchpoint diagnostic](GUEST_TIMER_WRITE_TRACE_GUIDE.md).

@@ -3,6 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
+> Latest direct runtime milestone: **12 gameplay samples verify s0=s1=60.0**, hence native frame-step division is **1.0** at about 30 rendered FPS.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -66,9 +67,9 @@ decompressed* NSOs; no game binary is committed.
 The original frame-step path (actual instructions verified in **both** builds):
 - `x8 = [frame_context + 0xA8]`,
   `x21 = [x8 + 0x20]` (FPS state object).
-- The static code contains a float load from `[x21+0x2C8]`, but the first live debugger trace found **raw bits `0x0000003c` there**. That is uint32 60, *not* the floating-point encoding of 60. The identity/lifetime of `s0` at the division remains **unverified**. The earlier "current FPS target" label was wrong.
+- The static code contains a float load from `[x21+0x2C8]`, but the first live debugger trace found **raw bits `0x0000003c` there**. That is uint32 60, *not* the floating-point encoding of 60. The **live s0 value at this division is now verified as 60.0** (12/12 gameplay samples), although the origin/lifetime of that value is **not** traced back to this field. The earlier "current FPS target" label was wrong.
 - `s1` is selected as **60.0 or 30.0**, based on a state flag.
-- `fdiv s8,s1,s0` is the exact original instruction; **the live values of s0/s1 have not yet been obtained**. Do not treat the surrounding loads as proof of a simulation-step formula in every path.
+- `fdiv s8,s1,s0` is the exact original instruction; **the live gameplay values are s0=60.0 and s1=60.0 (12/12), so the immediate divide result is 1.0**. Do not treat surrounding loads as proof of a simulation-step formula in every path.
 - `s8` is subsequently used by the frame-update machinery; its exact
   effects on all physics/animations must still be verified.
 
@@ -364,5 +365,44 @@ statistics and caveats are preserved in [MENU_TIMING_FIRST_TRACE.md](MENU_TIMING
 Corrected `guest_timer_probe.py` now captures actual AArch64
 floating-point `s0`, `s1` and `s8` register inputs in addition to
 raw `+0x2c8` field bits. It still uses temporary breakpoints,
-so measurement distortion remains. Obtain a fresh **gameplay trace**
-with the updated diagnostic before attempting V10.
+so measurement distortion remains. **Completed:** a 12-sample gameplay trace confirmed both live operands are 60.0, and s8 prior to division is 0. The next step is tracing the writer of x21+0x100, not repeating a timer-read experiment.
+
+## 12. First live gameplay FP-register trace (2026-11-06)
+
+**Authoritative new observation:** the user supplied 12 successive
+`gameplay_timing_v2.json` samples from Eglantine on E0F3 while the game
+was loaded. Each registered exactly **`s0 = 60.0` and
+`s1 = 60.0`** at the original `fdiv s8,s1,s0` (the pre-division
+`s8` value was 0.0). Therefore the division computes **1.0** even
+when the emulator runs at roughly **30 FPS / 50% game speed**.
+This is strong evidence of no *direct* actual-FPS adaptation at this
+site; a 30-Hz update loop with a fixed 1.0 tick would be half speed
+**if the update happens once per present**. Call count and downstream
+uses of `s8` are not yet captured.
+
+Other fields:
+- `x21+0x100` ≈24.94–26.71 million ticks in 11 paused-breakpoint
+  samples (median 26,499,606). These ~0.8s values are dominated by
+  debugger pauses; not real uninterrupted frame times.
+- `x21+0x148` sometimes differs from `+0x100` by ~0.7m ticks.
+- Negative signed values in `x21+0x150` decrease approximately by
+  the *preceding* `+0x100` reading (r≈0.99995).
+- `x21+0x2c8` raw uint32 is 60, but that is not a float32 60.
+  Do not assume these bits are the direct producer of live `s0`.
+
+Details are in
+[`GAMEPLAY_TIMING_FIRST_TRACE.md`](GAMEPLAY_TIMING_FIRST_TRACE.md).
+**No source/private game binaries or raw user gameplay JSON committed.**
+
+A NEW independently authored candidate
+[`guest_timer_write_trace.py`](guest_timer_write_trace.py) uses
+Eglantine's documented GDB **Z2 write watchpoints** to find the
+actual writer of `x21+0x100`, after identifying x21 at the verified
+original frame-step. Synthetic tests are green, but the watchpoint
+has **not yet run against a live emulator**. See
+[`GUEST_TIMER_WRITE_TRACE_GUIDE.md`](GUEST_TIMER_WRITE_TRACE_GUIDE.md).
+This is source-only diagnostics, NOT V10 or a working FPS mod.
+
+Next: obtain four write-site hits from gameplay, verify instruction
+provenance and units and distinguish real elapsed *full frame* time
+from per-subsystem/partial time. Only then consider another IPS.
