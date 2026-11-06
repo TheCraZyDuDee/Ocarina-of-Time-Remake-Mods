@@ -142,3 +142,31 @@ runtime physics call count. The next step is determining which of the
 two verified timing configuration call sites actually runs in gameplay
 and whether `S8` reaches it on both paths. See
 [CADENCE_30FPS_FIRST_TRACE.md](CADENCE_30FPS_FIRST_TRACE.md).
+
+
+## Active gameplay callsite and fractional rate risk (2026-11-06)
+
+A short numeric-only E0F3 original-game trace captured eight calls at
+`main+0x006E70F8` into timing-config converter
+`main+0x03B4E300`. Each received `S0=S8=1.0`, with frame flags
+`0x0B`, target 60 and `+0xD50` integer counter increasing by
+one each hit. The alternate `main+0x006E6DD8` call did not fire
+during this brief sample. Timing is perturbed by debugger stops.
+
+The converter produces **rounded nominal rate `60/step`**. Applying
+the *source formula* to previously recorded **unpatched** gameplay
+counter values yields hypothetical 50 FPS-scene rates
+**50,44,46,43,44**, and 30 FPS-scene rates **32,31,29,30,28**.
+Only one out of ten is an exact integer divisor of 60; a separately
+verified general FPS setter rejects non-divisor rates. **It has not
+been established that the converter passes its rate into that setter
+in normal or V9 execution**, so this is a precise compatibility
+hypothesis, not an explanation proven to cause V9's acceleration.
+
+V9 additionally modifies a guard at `main+0x03B4EF90` and a
+presentation argument at `main+0x03B4F080`, in addition to the
+frame-step hook at `main+0x006E6CC4`. These three changes are
+not causally isolated in user gameplay reports. Future source-only
+analysis should map whether their interactions force reconfiguration
+or duplicate simulation. Do not use known-failed V9 for normal play.
+See [FRAME_STEP_PATH_30FPS_FIRST_TRACE.md](FRAME_STEP_PATH_30FPS_FIRST_TRACE.md).
