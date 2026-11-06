@@ -66,3 +66,37 @@ new mod, and do not publish private raw captures. Investigate frame
 dispatcher order, timer update cadence and physical simulation substeps
 before creating a new IPS. Both E0F3 and base 33FA still need
 build-specific static verification.
+
+## Running the sparse snapshot probe
+
+The new [guest_timer_quiet_snapshot.py](guest_timer_quiet_snapshot.py)
+is source-only and has passed five mocked debugger tests, but has **not yet
+been run live on Eglantine**. It is not a game patch.
+
+With \`guest_timer_probe.py\` and \`guest_timer_quiet_snapshot.py\` together
+in your local terminal directory, close and restart Eglantine with its GDB
+stub enabled on port 6543, all FPS IPS mods disabled, emulator speed at
+100%, and a backed-up game save. Start the game at its initial debug halt.
+Then run:
+
+\`\`\`bash
+python3 guest_timer_quiet_snapshot.py \
+    --log '/mnt/EmuStuff/Emulatoren/Switch 2/user/log/eden_log.txt' \
+    --phase gameplay --fps-label 'about 30 fps' \
+    --samples 5 --seconds-between 4 \
+    --output quiet_timer_snapshots.json
+\`\`\`
+
+Adjust \`--fps-label\` to the *actual* approximate FPS overlay reading
+in your test scene; it is not measured by the script. Use the current
+session's real log path. The script will resume the game and prompt you
+to load a stable gameplay scene. Press Enter once the save is loaded.
+The script uses the verified original frame-step hook briefly to find
+the timing object; it then removes the breakpoint, single-steps the
+original instruction, and resumes the guest for several seconds
+between each sparse snapshot. It attempts to resume the guest on errors.
+
+Upload only \`quiet_timer_snapshots.json\` privately to the chat.
+The snapshots may contain interruption effects, especially around scene
+transitions; do not interpret them as a frame-time benchmark. No
+new FPS patch should be built from one run.
