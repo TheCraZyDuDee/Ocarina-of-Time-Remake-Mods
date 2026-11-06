@@ -19,6 +19,19 @@ For the newest confirmed static finding, use
 NSO segment hashes, while correctly reporting that the V9 timing
 input and runtime behavior are **unverified**.
 
+### Source restoration note
+
+The current original user dumps are ZBIC-compressed (NSO flags \`0xFF\`,
+all three segments begin \`ZBIC\`). They are **not** LZ4. A pure-stdlib
+LZ4 decoder is insufficient; ZBIC needs an external decoder such as
+[zbic](https://pypi.org/project/zbic/), which is GPL-licensed separately
+and is **not included** in this MIT repository. Use the
+[private NSO inspection image tool](private_nso_inspection_image.py)
+with your own copies and validate all three segment hashes.
+The helper was tested against synthetic NSOs, but real ZBIC decode
+could not run in the current environment because the decoder was missing.
+See [the handoff](HANDOFF.md) for exact commands.
+
 ## What we learned from testing
 
 | Experiment | Observed result | Lesson |

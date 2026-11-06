@@ -159,6 +159,56 @@ persist across chat sessions or AI environments**. They must never be
 committed or sent to public services. If absent, ask the user to
 provide their legally obtained private executables again.
 
+## New: original-NSO compression and reproducible private inspection
+
+The two original private uploads currently available as filenames \`main\`
+and \`main(1)\` are **not LZ4**. Their header flag word is \`0xFF\`,
+including \`NsoFlags_UseZbicCompression\` (bit 7), and all three
+compressed segment streams start with **\`ZBIC\`**. The matching build IDs are:
+
+- \`main\`: **33FA** base build;
+- \`main(1)\`: **E0F3** updated build.
+
+**A normal LZ4 decompression attempt fails**, as expected. Nintendo's
+ZBIC is a modified Zstandard format introduced in system 22.0.0.
+The original segments' SHA-256 values and decompressed text/rodata/data
+sizes are available in their NSO headers. See [Eden ZBIC support](https://git.eden-emu.dev/eden-emu/eden/pulls/4482)
+and [the independent ZBIC Python project](https://github.com/kinnay/zbic).
+
+A [new independently authored private inspection-image helper](private_nso_inspection_image.py)
+handles plain/LZ4/ZBIC compressed NSOs. The ZBIC package is **optional,
+external and separately GPL-licensed**; this MIT repository does not
+include or copy its implementation. The helper preserves the original
+NSO header, validates each of its three SHA-256 segment digests, and lays
+out the segments at \`0x100 + module_memory_offset\` for the existing
+read-only opcode inspectors. **The output is not a bootable NSO.**
+
+The helper and [synthetic tests](../../../../tests/test_private_nso_inspection_image.py)
+pass; however, **we did not perform real ZBIC decompression in the
+current runtime**, because that external decoder was not installed and
+this runtime cannot obtain a package from the network. The old
+decompressed paths listed elsewhere in this handoff are not currently
+present. Do not claim to have reverified binary offsets in this
+session from the compressed files.
+
+When ZBIC is available **in your own private environment**, run:
+
+\`\`\`bash
+python3 -m pip install zbic
+python3 mods/fps/research/true-dynamic/private_nso_inspection_image.py \
+  "/private/path/main" "/private/path/33FA_private_inspection.nso"
+python3 mods/fps/research/true-dynamic/private_nso_inspection_image.py \
+  "/private/path/main(1)" "/private/path/E0F3_private_inspection.nso"
+python3 mods/fps/research/true-dynamic/inspect_frame_step.py \
+  "/private/path/33FA_private_inspection.nso"
+python3 mods/fps/research/true-dynamic/inspect_frame_step.py \
+  "/private/path/E0F3_private_inspection.nso"
+\`\`\`
+
+**Never run this conversion in a CI job or upload the source or output
+NSO to public GitHub.** The helper is deliberately inspection-only,
+refuses overwrite, and prints no proprietary bytes or keys.
+
 ## 6. Remaining technical blocker and recommended next method
 
 **Find a real, monotonic elapsed-frame-time source with validated
