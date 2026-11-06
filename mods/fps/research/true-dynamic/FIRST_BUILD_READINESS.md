@@ -54,20 +54,33 @@ intentionally omitting the two unverified V9 controller edits:
 | E0F3 `main+0x006E6CC4` | Wall-clock step helper | Same research helper, guarded |
 | Isolated zero-filled executable caves | Helper code | Verified private trampoline only |
 
-The code verifies the NSO's exact original E0F3 SHA-256 segment hashes,
-the original hook/neighbor instruction fingerprints, both unchanged
-controller instruction fingerprints, isolated code-cave zeros,
-range-checked direct branches and IPS ZIP roundtrip. No game executable
-is packaged. Requires user's original **decompressed** (not ZBIC)
-E0F3 NSO. It will refuse to overwrite an existing private ZIP.
+The one-shot [`build_isolated_from_original_zbic.py`](build_isolated_from_original_zbic.py)
+can now consume the user's ORIGINAL PRIVATE **ZBIC-compressed E0F3 NSO**
+directly on a Linux system with `zbic==1.0.1.post1`, `clang` and
+`llvm-objcopy`. It uses
+[`private_nso_inspection_image.py`](private_nso_inspection_image.py)
+to decode three original segments **in memory**, validates the actual
+SHA-256 hashes against the original header using
+[`inspection_image_validation.py`](inspection_image_validation.py),
+then builds the IPS. **It does not write an uncompressed Nintendo game
+executable to disk.** The archived V9 builder's old file-offset loader
+cannot read the decoded memory layout correctly; it remains archived.
 
-The source tests `tests/test_isolated_step_research_builder.py` are
-synthetic and check no controller instructions are touched, cave errors
-fail closed, and the archive stays clean. **No actual IPS has been
-produced from the user's NSO in this research session** because the
-uploaded private NSOs are ZBIC-compressed and the required ZBIC-aware
-decoder is not installed. Recreating a build without exact source
-verification would be worse than deferring generation.
+The IPS source verifies the original hook/neighbor fingerprints, both
+unchanged controller instructions, isolated code-cave zeros,
+range-checked direct branches and IPS ZIP roundtrip. No game executable
+is packaged; only source-written IPS instruction changes plus a README.
+The wrapper refuses to overwrite an existing private ZIP.
+
+Synthetic end-to-end tests in `tests/test_zbic_to_research_build.py`
+now cover decompression-adapter, source hashes, bad original input,
+code-cave isolation and private ZIP generation. Real ZBIC package
+availability is confirmed by upstream published Linux wheels, but
+**no actual IPS from the user's original NSO has been produced in
+this restricted execution container**, which cannot access PyPI.
+The next step is a **single local one-shot build**, not multiple
+GDB sessions. Exact commands and requirements:
+[ZBIC_DECOMPRESSION_AND_BUILD.md](ZBIC_DECOMPRESSION_AND_BUILD.md).
 
 ## Gates before calling the build ready for tester evaluation
 
@@ -78,12 +91,17 @@ verification would be worse than deferring generation.
   the new source-only prototype.
 - [x] Prototype source and synthetic tests committed only on
   `research/true-dynamic-fps`.
-- [ ] Obtain original decompressed/verified E0F3 NSO privately,
-  either by a working ZBIC extraction of user's existing originals
-  or by local preparation on the user's Linux setup. Do not publish it.
-- [ ] Build and independently audit the real E0F3 IPS patch ZIP
-  from that private file; verify installed patch has only intended
-  source modifications and branches.
+- [x] Verify private original E0F3 NSO actually has ZBIC frame
+  signatures and find a supported independent ZBIC decoder.
+- [x] Connect original compressed NSO → in-memory decode → 3 original
+  section SHA-256 checks → research ZIP with a single script.
+- [ ] Run this exact source on the private E0F3 original with the real
+  Kinnay ZBIC library on an internet-connected local Linux machine
+  (current tool container has no PyPI/DNS access).
+- [ ] Independently audit the resulting real IPS ZIP: the only
+  overwritten original instruction is FDIV S8; both controller
+  instructions are untouched; all trampoline branches and caves
+  check out.
 - [ ] Tester validates baseline and isolated prototype with backed-up
   saves at approx. 60, 45, 30 and 15 actual FPS, plus loading/menus.
   Check real-world elapsed time, animation/physics/collision and
