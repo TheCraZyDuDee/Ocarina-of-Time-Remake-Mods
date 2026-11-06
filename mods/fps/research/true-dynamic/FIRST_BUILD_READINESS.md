@@ -4,10 +4,12 @@
 actual installable mod build—not just another analysis note.**
 
 The first *experimental* build is deliberately an **isolated step**
-experiment on **E0F3 only**. It must never be silently published to
-`main`/stable releases or represented as a tested fix. The longer-term
-goal remains dynamic FPS without slow-motion or sped-up gameplay at
-variable *actual* rendering rates.
+experiment on **E0F3 only**. **It now has a positive user gameplay
+report (2026-11-07) at roughly 10–15 and 30–45 actual FPS**, but
+has not been independently timed across the whole game or ported to
+33FA. It must never be silently published to `main`/stable releases.
+The goal remains dynamic FPS without slow-motion or sped-up gameplay
+at variable *actual* rendering rates.
 
 ## Source-level evidence available (2026-11-06)
 
@@ -143,3 +145,36 @@ Next gates:
 **User instruction:** produce first test builds when research supports
 them, but never substitute *static* validation for real gameplay
 testing or prematurely label an experiment a working final release.
+
+
+## 2026-11-07: first successful real E0F3 playtest
+
+Tester reports **apparently normal gameplay speed** with the exact
+originally delivered E0F3 V10 isolated-step ZIP at approximate actual
+**10–15 FPS and 30–45 FPS**. This is the first positive practical
+variable-FPS result and strongly supports the isolated-step approach.
+The ZIP is the *same byte-identical artifact*, not a rewritten build.
+
+- [x] Deliver an actual, statically audited E0F3 test ZIP.
+- [x] Obtain first positive **user-reported E0F3 variable-FPS gameplay
+  test** (approx. 10–45 actual FPS).
+- [x] Add a strict source-only reproducibility path for the **exact
+  tested E0F3 IPS**, checking original archive hashes, all helper
+  words and branch targets. See
+  [reproduce_v10_ips_from_v9_archive.py](reproduce_v10_ips_from_v9_archive.py).
+- [ ] Optional release-sanity checks if convenient: scene transition,
+  menus, cutscenes, collision/animations and sustained low-FPS
+  stopwatch comparison. No intrusive debugger capture is necessary
+  just to repeat the initial positive result.
+- [ ] Independently validate **33FA**, or advertise the E0F3 build
+  as E0F3-only.
+- [ ] Explicit user authorization before any public stable/main
+  promotion; preserve the SHA-256-identified working test build.
+
+**The 0.5–4.0 clamp remains in the tested helper.** At a truly steady
+10 FPS with exactly one simulation-step invocation per displayed
+frame, a basic model predicts only 40/60 of nominal game progression,
+whereas the tester says it *looks normal*. This is an open measurement
+question, not an observed regression. Do **not** alter the helper
+based purely on the simplistic model. Track test conditions only if
+future gameplay reveals a problem.
