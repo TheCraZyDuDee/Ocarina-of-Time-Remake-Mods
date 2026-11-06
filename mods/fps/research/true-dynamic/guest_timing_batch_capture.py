@@ -26,7 +26,7 @@ ORIGINAL_CONTROLLER_CHECKS = {
     0x03B4EF90: 0x37000728,  # TBNZ on controller flag
     0x03B4F080: 0xB9404A81,  # LDR presentation interval from controller
     0x03B4F088: 0x97E4754E,  # BL native presentation setter
-    0x03B4F190: 0x97E639D8,  # BL shared FPS setter (original audit)
+    0x03B4F190: 0x972633D8,  # BL shared FPS setter (original audit)
 }
 TARGETS = (
     ("timing_callback", CALLBACK, 0x1000),
