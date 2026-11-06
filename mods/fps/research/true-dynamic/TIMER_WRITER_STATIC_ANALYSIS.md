@@ -57,3 +57,44 @@ from the captured JSON are reproduced here.
 After identifying the source clock, verify end-to-end measurement lifecycle
 and scheduling during uninterrupted gameplay, menus and scene changes before
 considering a new IPS patch.
+
+## Import trampoline confirmed (follow-up to the timer-source capture)
+
+The tester privately supplied `timer_source_window.json`, containing a
+SHA-256-verified 384-byte AArch64 window at `main+0x03C41FD0` on E0F3.
+Disassembly shows a consecutive import-trampoline table, **not an
+implementation of a clock function**. The first entry consists of standard
+`ADRP x16`, `LDR x17,[x16,#imm]`, `ADD x16,x16,#imm`, `BR x17`
+instructions. Its resolved function pointer is held at
+**`main+0x04CBF1B0`** (E0F3 only). The remaining 23 entries reference
+neighboring pointer slots. This is a positive finding about the call chain,
+not evidence of a particular clock frequency or a valid full-frame delta.
+
+The new read-only [`guest_timer_import_target.py`](guest_timer_import_target.py)
+verifies the unmodified original frame-step hook and writer instruction,
+validates the import trampoline structurally, then reads the single 64-bit
+pointer and at most **256 bytes** from its resolved code target. Unlike the
+previous immediate-only window, its default mode lets the tester reach a menu
+or gameplay before requesting a single debugger interrupt, increasing the
+chance that the import is initialized. If the pointer is invalid or the code
+is unreadable, the report records that without assuming a valid function.
+The tool resumes the game on exit and does not place any game-code patches.
+Seven local synthetic checks pass, but the new script has **not** been tested
+live with Eglantine.
+
+Run privately alongside `guest_timer_probe.py`, with GDB stub on port 6543,
+all FPS mods disabled, and the game waiting at its initial debugger halt:
+
+```bash
+python3 guest_timer_import_target.py \\
+  --log '/mnt/EmuStuff/Emulatoren/Switch 2/user/log/eden_log.txt' \\
+  --output timer_import_target.json
+```
+
+When prompted, let Eglantine reach a menu or gameplay and press Enter. Use the
+current-session log path; never hardcode a base from another launch. The JSON
+contains guest addresses and possibly original executable instructions;
+**do not commit or publicly share it**. Upload it privately for the next
+analysis. It may still resolve to another wrapper/trampoline; verify any
+subsequent clock-source and unit claims using actual target code plus
+runtime behavior before any V10 proposal.
