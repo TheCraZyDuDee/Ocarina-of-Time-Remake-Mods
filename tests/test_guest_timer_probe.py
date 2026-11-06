@@ -88,7 +88,13 @@ class ProbeTest(unittest.TestCase):
             def mem(self, addr, n):
                 return struct.pack("<I", self.opcode)
         probe.verify_unmodified_hook(Mem(0x1E201828), 0x8000)
-        with self.assertRaisesRegex(ValueError, "remove other FPS mods"):
+        report = probe.inspect_hook_identity(
+            Mem(0x14000004), 0x80D3A000,
+            "E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348"
+        )
+        self.assertFalse(report["original_hook_matches"])
+        self.assertEqual(report["observed_instruction"], "0x14000004")
+        with self.assertRaisesRegex(ValueError, "observed 0x14000004"):
             probe.verify_unmodified_hook(Mem(0x14000004), 0x8000)
 
     def test_log_resolution(self):

@@ -13,12 +13,13 @@ HOOK = 0x80D3A000 + 0x006E6CC4
 
 
 class FakeStub(threading.Thread):
-    def __init__(self, server):
+    def __init__(self, server, resume_on_first_continue=False):
         super().__init__(daemon=True)
         self.server = server
         self.queries = []
         self.error = None
         self.resumed = False
+        self.resume_on_first_continue = resume_on_first_continue
 
     @staticmethod
     def frame(payload):
@@ -65,7 +66,7 @@ class FakeStub(threading.Thread):
                         elif cmd == "s":
                             answer = "T05thread:1;"
                         elif cmd == "c":
-                            if any(q.startswith("z0") for q in self.queries):
+                            if self.resume_on_first_continue or any(q.startswith("z0") for q in self.queries):
                                 self.resumed = True
                                 continue
                             answer = "T05thread:1;"
@@ -96,6 +97,27 @@ class FakeStubEndToEnd(unittest.TestCase):
             self.assertTrue(stub.resumed)
             self.assertIn('"field_100": 10000000', result.stdout)
             self.assertNotIn("0x200000", result.stdout)
+
+
+    def test_read_only_hook_preflight_does_not_patch_code(self):
+        with socket.socket() as server:
+            server.bind(("127.0.0.1", 0))
+            server.listen(1)
+            stub = FakeStub(server, resume_on_first_continue=True)
+            stub.start()
+            cmd = [
+                sys.executable, str(SCRIPT),
+                "--build-id", "E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348",
+                "--main-base", "0x80d3a000", "--phase", "menu",
+                "--check-hook", "--port", str(server.getsockname()[1]),
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            stub.join(timeout=2)
+            self.assertIsNone(stub.error)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(stub.resumed)
+            self.assertIn('"original_hook_matches": true', result.stdout)
+            self.assertFalse(any(q.startswith(("Z0", "z0")) for q in stub.queries))
 
 
 if __name__ == "__main__":

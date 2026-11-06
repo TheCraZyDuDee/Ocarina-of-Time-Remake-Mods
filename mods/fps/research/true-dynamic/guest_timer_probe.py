@@ -104,11 +104,33 @@ def detect_main_base(log_text):
     return matches[-1]
 
 
+def read_hook_word(rsp, guest_address):
+    """Read one original guest instruction; never change the guest code."""
+    return struct.unpack("<I", rsp.mem(guest_address, 4))[0]
+
+
 def verify_unmodified_hook(rsp, guest_address):
-    """Fail closed if runtime executable is not the original instruction."""
-    actual = struct.unpack("<I", rsp.mem(guest_address, 4))[0]
+    """Fail closed and report the exact mismatch for debugging stale addresses."""
+    actual = read_hook_word(rsp, guest_address)
     if actual != ORIGINAL_HOOK_INSN:
-        raise ValueError("Timing hook is not original: remove other FPS mods and check base/build")
+        raise ValueError(
+            f"Original timing instruction mismatch at guest 0x{guest_address:x}: "
+            f"expected 0x{ORIGINAL_HOOK_INSN:08x}, observed 0x{actual:08x}. "
+            "Do not bypass this guard. Confirm this game's CURRENT main load "
+            "address from the current-session eden_log.txt, correct game build, "
+            "and disabled FPS IPS mods. A log from a previous launch may be stale."
+        )
+
+
+def inspect_hook_identity(rsp, base, build_id):
+    """Read-only preflight: prints precise identity data without a breakpoint."""
+    guest_address = base + HOOKS[build_id]
+    word = read_hook_word(rsp, guest_address)
+    return {"build_id": build_id, "main_base": f"0x{base:x}",
+            "hook_guest_address": f"0x{guest_address:x}",
+            "expected_instruction": f"0x{ORIGINAL_HOOK_INSN:08x}",
+            "observed_instruction": f"0x{word:08x}",
+            "original_hook_matches": word == ORIGINAL_HOOK_INSN}
 
 
 def parse_guest_sample(rsp, regs):
@@ -155,6 +177,7 @@ def main():
     p.add_argument("--phase", required=True, choices=("menu", "gameplay"))
     p.add_argument("--output", default="", help="Optional local JSON output; PRIVATE")
     p.add_argument("--immediate", action="store_true", help="Arm at current guest stop (no menu/gameplay selection)")
+    p.add_argument("--check-hook", action="store_true", help="Read original hook opcode, never set a breakpoint; run directly after starting Eglantine")
     args = p.parse_args()
     if not 1 <= args.samples <= 40 or not 1 <= args.port <= 65535:
         p.error("samples must be 1..40 and port 1..65535")
@@ -178,7 +201,7 @@ def main():
             state = rsp.packet("?")
             if not state.startswith(("T", "S")):
                 raise ValueError("Debugger has no stopped guest process. Start the game first.")
-            if not args.immediate:
+            if not args.immediate and not args.check_hook:
                 print("Debugger attached. Guest will run; load the desired", args.phase,
                       "scene. Press ENTER in this terminal to sample it.", flush=True)
                 rsp.send_continue()
@@ -194,6 +217,15 @@ def main():
                 if base < 0x10000 or base & 3:
                     raise ValueError("Invalid main module address in log")
             hook = base + HOOKS[args.build_id]
+            if args.check_hook:
+                report = inspect_hook_identity(rsp, base, args.build_id)
+                print(json.dumps(report, indent=2), flush=True)
+                if not report["original_hook_matches"]:
+                    print("Diagnostic only: this does not prove an FPS mod was enabled. "
+                          "Check the current main module base first.", flush=True)
+                rsp.send_continue()
+                resumed = True
+                return
             verify_unmodified_hook(rsp, hook)
             reply = rsp.packet(f"Z0,{hook:x},4")
             if reply != "OK":

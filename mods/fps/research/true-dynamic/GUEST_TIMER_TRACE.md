@@ -131,3 +131,38 @@ original-instruction safety checks.
 This is a diagnostic milestone, not evidence of fully dynamic gameplay.
 When runtime data validates an actual timer source and update cadence,
 a new independent IPS can be built with conservative safeguards.
+
+## Troubleshooting a mismatched original instruction
+
+**2026-11-06 Linux Eglantine field report:** The tester enabled GDB on port
+6543 and the diagnostic successfully connected and resumed the guest. After
+pressing Enter to sample the menu it aborted at
+`verify_unmodified_hook()` with "Timing hook is not original". The user's
+previously uploaded Eglantine log showed the updated E0F3 build with
+`main` at `0x80e26000`, **but that log ended with a full emulator shutdown**.
+That base was copied into a subsequent debugging command. It may be stale.
+This exception is **not evidence the user forgot to disable mods**.
+
+The current script has a safe `--check-hook` option. After a fresh emulator
+launch, while it is waiting for the debugger, run:
+
+```sh
+python3 guest_timer_probe.py \
+  --build-id E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348 \
+  --main-base 0x80e26000 --phase menu --check-hook
+```
+
+This reports the expected and observed **single 32-bit instruction**
+and guest address, sets **no breakpoint**, and resumes the game.
+Use the `0x80e26000` value only as a diagnostic for the earlier log,
+not as the source of truth for future sessions. Prefer replacing
+`--main-base` with `--log "/path/to/CURRENT/eden_log.txt"` so the
+script extracts the **latest** `main` load address after the game loads.
+
+If `original_hook_matches` is false, **do not override it**. Send the
+JSON and a fresh current-session log; distinguish an old base, an
+unexpected code mapping, a changed original revision, and a real patch.
+If it is true, the user can retry the main 12-sample menu trace with
+the same **current** launch base, but the emulator must be relaunched
+between debugger sessions for predictable initial halt state.
+

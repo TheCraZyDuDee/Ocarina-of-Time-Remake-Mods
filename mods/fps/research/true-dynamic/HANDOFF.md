@@ -317,3 +317,28 @@ build V10 just because the trace shows a plausible number.
 
 The script can be downloaded independently for debugging; it is
 **not a new FPS mod and should not be placed in releases/**.
+
+## 10. Eglantine debugger mismatch (2026-11-06)
+
+The tester ran `guest_timer_probe.py` on CachyOS / Eglantine. The
+guest debugger **connected successfully** on port 6543; the script
+resumed the game and accepted Enter to sample menus. It then stopped
+safely at the **original hook verification**:
+`ValueError: Timing hook is not original`. This does *not* prove that
+any FPS mods were enabled. The previously supplied log documented
+E0F3 `main` loaded at `0x80e26000` **in a session that later shut down**.
+Reusing that base in a later session is unverified; it may be a stale
+guest virtual address.
+
+The updated `guest_timer_probe.py` now provides `--check-hook`
+to print the precise observed AArch64 instruction at the computed
+hook site, **without setting any breakpoint**. It also makes a
+mismatch exception print the observed instruction and address. The
+diagnostic itself resumes the game after the check. Synthetic unit
+tests and a fake GDB-stub integration test cover this preflight.
+See `GUEST_TIMER_TRACE.md` for exact Linux commands.
+
+**Status remains unresolved** until the tester reports the read-only
+preflight output or uploads a fresh current-launch `eden_log.txt`.
+Do not remove the verification check or generate V10 based on this
+error alone. No stable mod/release was changed.
