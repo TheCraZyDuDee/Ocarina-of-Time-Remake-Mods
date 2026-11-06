@@ -14,16 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test IPS32 source, docs and regression hashes
+      - name: Test IPS32 source and release regressions
         run: python3 -m unittest discover -s tests -v
-      - name: Rebuild ZIPs
+      - name: Rebuild downloadable ZIPs
         run: python3 mods/fps/build.py --output-dir dist
-      - name: Verify packaged ZIPs reproduce exactly
+      - name: Verify exact published ZIPs
         run: |
-          for name in oot-fixed-30-both-builds.zip oot-adaptive-both-builds.zip oot-variable-both-builds.zip; do
+          for name in oot-fixed-30-both-builds.zip oot-adaptive-both-builds.zip oot-true-dynamic-e0f3.zip; do
             cmp "dist/$name" "releases/$name"
           done
-      - name: Check for prohibited file extensions
+      - name: Reject proprietary input files
         run: |
           if git ls-files | grep -Ei '(\.nso$|\.nca$|\.nsp$|\.xci$|\.keys$|(^|/)main\([0-9]+\)$|(^|/)eden_log.*\.txt$)'; then
             echo "Proprietary dump detected" >&2

@@ -1,34 +1,34 @@
 # Ocarina of Time Remake Mods
 
-A collection of standalone mods for *The Legend of Zelda: Ocarina of Time* on Nintendo Switch 2, developed with AI assistance. Mods are distributed as small patches, **not game files**.
+Standalone IPS32 mods for *The Legend of Zelda: Ocarina of Time* on Nintendo Switch 2, developed with AI assistance. Archives contain patches, **not Nintendo game files**.
 
-## Browse mods
+## Download FPS mods
 
-Visit the **[mod catalog](mods/README.md)** for all categories.
+| Mod | Purpose | Build support | ZIP |
+| --- | --- | --- | --- |
+| [True Dynamic FPS](mods/fps/true-dynamic/README.md) | User reports normal gameplay speed at roughly 10–45 actual FPS. | **E0F3 only** | [Download](releases/oot-true-dynamic-e0f3.zip) |
+| [Fixed 30 FPS](mods/fps/fixed-30/README.md) | Native fixed 30 FPS with normal game speed. | E0F3 and 33FA | [Download](releases/oot-fixed-30-both-builds.zip) |
+| [Native Adaptive FPS](mods/fps/native-adaptive/README.md) | Native discrete 20/30/60 modes, not continuously variable. | E0F3 and 33FA | [Download](releases/oot-adaptive-both-builds.zip) |
 
-### Frame rate and performance
+The older untested *Variable-average FPS* ZIP has been retired. [Full mod catalog](mods/README.md) · [Compatibility](mods/fps/README.md)
 
-| Mod | What it does | |
-| --- | --- | --- |
-| [Fixed 30 FPS](mods/fps/fixed-30/README.md) | Stable 30 FPS with normal game speed. | [Download](releases/oot-fixed-30-both-builds.zip) |
-| [Native Adaptive FPS](mods/fps/native-adaptive/README.md) | Lets the game select its native 20/30/60 FPS modes. | [Download](releases/oot-adaptive-both-builds.zip) |
-| [Variable-average FPS](mods/fps/variable-average/README.md) | Experimental intermediate average FPS. | [Download](releases/oot-variable-both-builds.zip) |
+## Installation
 
-Each mod has its own page with compatibility, testing status and installation notes. More categories can be added without changing this layout.
+1. Download **one** FPS mod ZIP. Import it using a compatible emulator's mod manager, or extract the inner `0400486024DEC000/` folder into the emulator's `load/` directory.
+2. Disable every other FPS patch (including emulator-provided FPS patches); use emulator speed **100%**, turn off frame generation and back up saves.
+3. Restart the game and check that the executable build ID matches the chosen mod.
 
-## Getting started
+The True Dynamic release is **E0F3-only**. The 33FA build has not yet been validated for continuously variable simulation timing.
 
-1. Choose a mod and read its linked page.
-2. Download its ZIP, then import it with a compatible emulator's mod manager or extract the title-ID folder into the emulator's `load/` folder.
-3. Enable the mod and restart the game.
+## Development
 
-**Only one FPS mod at a time.** If using Orchid, disable its built-in FPS patch before installing a standalone FPS mod. Back up saves before trying experimental changes.
+All published ZIPs build using Python's standard library:
 
-## Source, releases and licensing
+```sh
+python3 mods/fps/build.py --output-dir dist
+python3 -m unittest discover -s tests -v
+```
 
-- [FPS mods and compatible builds](mods/fps/README.md)
-- [Build and contribution notes](docs/DEVELOPMENT.md)
-- [Downloadable ZIP archives](releases/) and [GitHub Releases](https://github.com/TheCraZyDuDee/Ocarina-of-Time-Remake-Mods/releases)
-- [Attribution and distribution policy](docs/ATTRIBUTION.md) · [MIT License](LICENSE)
+[Development guide](docs/DEVELOPMENT.md) · [Technical handoff](mods/fps/research/true-dynamic/HANDOFF.md) · [Attribution](docs/ATTRIBUTION.md) · [MIT License](LICENSE)
 
-No Nintendo game executables, encryption keys, decrypted dumps, or extracted assets are included. The patches are unofficial and are not endorsed by Nintendo.
+Unofficial mods, not endorsed by Nintendo. No proprietary executables, keys, saves, or extracted assets are included.
