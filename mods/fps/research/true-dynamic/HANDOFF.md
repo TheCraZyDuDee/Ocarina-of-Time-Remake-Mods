@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest direct runtime milestone: **12 gameplay samples verify s0=s1=60.0**, hence native frame-step division is **1.0** at about 30 rendered FPS.
+> Latest direct runtime milestone: **five sparse ordinary-gameplay timer samples at ~50 FPS** show x21+0x100 equals 20.0–23.0 ms of physical-counter ticks; V9's four-tick clamp was **not reached** in this unmodified-game trace. Earlier 12 gameplay samples confirmed s0=s1=60.0 at the original frame-step division.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -488,3 +488,35 @@ and reads only numeric fields `+0x100`, `+0x108`, `+0x148`, `+0x150`.
 It has NOT yet been run live; the observations are sparse cached values,
 not an unbiased FPS profiler. See the commands in
 [COUNTER_SOURCE_CONFIRMED.md](COUNTER_SOURCE_CONFIRMED.md).
+
+
+## 15. First sparse uninterrupted gameplay timer sampling (2026-11-06)
+
+The tester ran the new read-only `guest_timer_quiet_snapshot.py` during
+E0F3 gameplay at approximately **50 displayed FPS**, taking five snapshots
+after four-second intervals of resumed gameplay. The `+0x100` cached
+physical-counter differences were **625,074–720,094 ticks**, equivalent
+to **20.002–23.043 ms** at 31.25 MHz (mean 22.106 ms); the equivalent
+per-sample rates, **43.4–50.0 FPS**, are consistent with the reported
+FPS overlay. The separate `+0x148` field was always shorter,
+**17.342–20.713 ms**, and the saved `+0x108` timestamp advanced by
+**4.158–4.171 seconds** per approximately four-second debugger cycle.
+
+All five unmodified-game values are *below* V9's four-tick cap threshold
+of **2,083,333 ticks** at nominal 60 Hz. If V9 consumed these values
+correctly, they would imply approximately 1.20–1.38 ticks, **not 4.0**.
+This makes the previous theory that the input is always a cumulative
+counter or universally saturates the clamp **untenable as a general
+explanation**. It does **not** establish the cause of V9's failure:
+under V9, in menus, after loading or at lower FPS the same field may
+have different timing or freshness. An approximate overlay reading and
+five paused snapshots are not proof of whole-frame cadence.
+
+See [QUIET_GAMEPLAY_FIRST_TRACE.md](QUIET_GAMEPLAY_FIRST_TRACE.md).
+**Next:** reuse the existing `guest_timer_quiet_snapshot.py` for a
+naturally slower, stable gameplay scene (~30 FPS if available), all FPS
+patches disabled and emulator speed unchanged. Do not force a different
+emulator speed to simulate a slow renderer. Independently verify that
+`+0x100` updates before every simulation `fdiv` and that its
+consumers advance all physics once per presented frame. There is still
+**no validated V10 patch**, and the 33FA writer path is unmapped.
