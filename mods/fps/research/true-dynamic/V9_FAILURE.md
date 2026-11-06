@@ -197,3 +197,23 @@ Do not attribute failed V9's excessive speed to two calls per frame
 without a measured, **patched-game** call trace or other independent
 evidence. The native timing callback and V9's three-way changes
 remain higher-priority unresolved causes.
+
+
+## Verified source mismatch: V9 rate vs presentation (2026-11-06)
+
+The tester's checksum-verified private **original E0F3 controller**
+window gives the missing control flow. The interval controller at
+`main+0x03B4EF60` skips adaptive recalculation when its
+`controller+0x60` flag bit 0 is set, but still calls both native
+FPS and presentation setters. Its normal FPS setter reads a
+`60 / interval` rate derived from `controller+0x48`, while its
+presentation setter receives that stored interval directly.
+V9 replaces the first guard with `NOP` and the presentation load
+with `MOV W1,#1`, while separately changing `S8`.
+**If the stored interval is 2 or 3**, for example, the native FPS
+setter may request approximately 30 or 20 FPS (subject to
+acceptance/fallback) while presentation is forced to interval 1.
+This conditional structural inconsistency is independently proven
+in patch source and original controller code. Its real effects,
+V9's stored interval and the observed overspeed cause remain unknown.
+See [V9_CONTROLLER_CAUSAL_TRACE.md](V9_CONTROLLER_CAUSAL_TRACE.md).
