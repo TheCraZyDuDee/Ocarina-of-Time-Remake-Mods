@@ -285,3 +285,35 @@ frame drops a CPU-bound emulator may be unable to keep up at all.
 > verified. Both E0F3 and 33FA builds must be supported. Advance
 > only with source-derived evidence and runtime timing validation;
 > preserve every research finding in the branch for future handoff.
+
+## 9. Runtime timing diagnostic prepared (2026-11-06)
+
+A new **non-installable, read-only GDB-stub probe** provides the first
+direct approach to observing V9's suspect input. See
+[\`GUEST_TIMER_TRACE.md\`](GUEST_TIMER_TRACE.md), together with
+[\`guest_timer_probe.py\`](guest_timer_probe.py).
+
+It uses the existing guest debugger in compatible Lichii/Eglantine builds,
+rather than injecting another risky IPS. It temporarily breaks at the
+original simulation division (\`main+0x006E6CC4\` E0F3 or
+\`main+0x006B5A08\` 33FA), confirms the original instruction,
+samples \`FPS_state+0x100\`, \`+0x148\`, \`+0x150\` as 64-bit values and
+\`+0x2C8\` as the float target FPS, then restores the breakpoint and
+resumes the game. Source contains no private game data, executable
+copies or emulator GPL code.
+
+There are two levels of validation: mocked GDB unit tests and a local
+fake debugger integration test verifying attach/step/resume. **It
+has not been tested against live emulator process timing.**
+Sampling necessarily pauses frames, so samples are suitable for *field
+provenance clues* but not for unbiased frame duration measurements.
+
+Next step when a tester can run a compatible GDB-enabled emulator:
+capture **12 samples from menu and gameplay** with all other FPS
+patches disabled, inspect whether \`+0x100\` is an absolute tick count,
+a stable field, or an actual delta. Then trace the **write-site** for
+any candidate value and re-check its units and lifecycle. Do **not**
+build V10 just because the trace shows a plausible number.
+
+The script can be downloaded independently for debugging; it is
+**not a new FPS mod and should not be placed in releases/**.

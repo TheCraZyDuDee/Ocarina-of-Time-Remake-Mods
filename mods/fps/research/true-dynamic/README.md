@@ -153,3 +153,16 @@ No broken ZIP is present in GitHub.
 **At 0 displayed FPS, a render-driven loop cannot advance.** Maintaining simulation when rendering stops requires a separate running update thread. Under severe emulator overload, even decoupled updates can fall behind.
 
 No generated patch, proprietary game data or GPL emulator code is included here. The source is original under this repository's MIT license.
+
+## Runtime timer diagnostic (GDB, source only)
+
+[Read the diagnostic guide](GUEST_TIMER_TRACE.md) and
+[\`guest_timer_probe.py\`](guest_timer_probe.py). This independently
+written, read-only helper uses the emulator's GDB stub to observe
+V9's suspected time field \`+0x100\` plus two nearby fields at the
+**original** frame-step hook. It also checks the float target FPS.
+It never uploads or modifies game files; temporary debugger
+breakpoints alter execution timing during the measurement, so it
+cannot establish unbiased FPS. The script has been tested against a
+mocked local GDB stub, **not yet a real emulator**. A verified runtime
+trace is the missing prerequisite for designing V10 safely.
