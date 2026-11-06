@@ -8,7 +8,8 @@ interval. It reuses the audited V9 read-only elapsed-step helper but
 INTENTIONALLY DOES NOT reproduce failed V9's other two controller edits.
 
 No output is created unless the user explicitly opts into research
-build generation with their own original DECOMPRESSED, hash-verified NSO.
+build generation with their own original PRIVATE, hash-verified DECODED INSPECTION IMAGE.
+The optional one-shot wrapper can generate this in memory from a ZBIC NSO.
 Never commit game binaries, experimental IPS, ZIPs or private dumps.
 Only create a local, backup-protected candidate; gameplay validity
 must be independently tested at 15/30/45/60 FPS before any release.
@@ -19,6 +20,8 @@ import struct
 import zipfile
 
 import real_elapsed_probe_builder as previous
+from inspection_image_validation import (load_verified_inspection_image,
+                                         validate_inspection_image)
 
 BUILD = "E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348"
 TITLE = previous.TITLE
@@ -112,8 +115,10 @@ def construct_ips(data, helper_words, *, cave_picker=None):
     return bytes(ips), used, records
 
 
-def generate_zip(nso_path, out_path):
-    data = previous.load_nso(nso_path, BUILD)
+def generate_zip_from_image(data, out_path):
+    # Verify the original source's SHA-256 section hashes against the
+    # synthetic decompressed MEMORY layout (not original FILE offsets).
+    validate_inspection_image(data, BUILD)
     words = previous.assemble()
     ips, caves, records = construct_ips(data, words)
     readme = (
@@ -146,10 +151,15 @@ def generate_zip(nso_path, out_path):
             "ips_instruction_records": len(records), "code_cave_segments": len(caves)}
 
 
+def generate_zip(image_path, out_path):
+    return generate_zip_from_image(
+        load_verified_inspection_image(image_path, BUILD), out_path)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--e0f3", type=Path, required=True,
-                   help="Original, decompressed, segment-hash-verified E0F3 NSO")
+                   help="Private, decoded/hash-verified E0F3 inspection image, NOT the original compressed NSO")
     p.add_argument("--output", type=Path, default=Path("private-isolated-step-research.zip"))
     p.add_argument("--enable-unvalidated-research-build", action="store_true")
     args = p.parse_args()
