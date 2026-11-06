@@ -63,13 +63,19 @@ def safe_float(value):
 
 
 def capture_hit(rsp, base, regs, pc):
-    # This pointer is known from the original frame-step function's verified
-    # MOV X19,X0 prologue; no guest private addresses are exported.
+    # X19 is preserved as the frame context. X21 was repurposed prior to
+    # both call sites; no guest private addresses are exported.
     frame = regs.get("x19", 0)
-    fps = regs.get("x21", 0)
-    if not (0x10000 <= frame < 1 << 48 and frame % 8 == 0 and
-            0x10000 <= fps < 1 << 48 and fps % 8 == 0):
-        raise RuntimeError("Frame state pointer invalid at timing-config call")
+    if not (0x10000 <= frame < 1 << 48 and frame % 8 == 0):
+        raise RuntimeError("Frame-context pointer invalid at timing-config call")
+    # X21 is REUSED as a different global pointer before both call sites.
+    # Recover FPS state from the verified X19 context chain, never from X21.
+    manager = struct.unpack("<Q", rsp.mem(frame + 0xA8, 8))[0]
+    if not (0x10000 <= manager < 1 << 48 and manager % 8 == 0):
+        raise RuntimeError("Timing-manager pointer invalid at call site")
+    fps = struct.unpack("<Q", rsp.mem(manager + 0x20, 8))[0]
+    if not (0x10000 <= fps < 1 << 48 and fps % 8 == 0):
+        raise RuntimeError("FPS-state pointer invalid at call site")
     flags = struct.unpack("<I", rsp.mem(frame + 0xD38, 4))[0]
     counter = struct.unpack("<I", rsp.mem(frame + 0xD50, 4))[0]
     nominal = struct.unpack("<I", rsp.mem(fps + 0x2C8, 4))[0]
