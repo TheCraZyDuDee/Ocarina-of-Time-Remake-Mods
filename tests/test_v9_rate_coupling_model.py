@@ -30,12 +30,14 @@ class V9RateCouplingModel(unittest.TestCase):
         self.assertEqual(model.v9_step_from_ticks(0), 0.5)
         self.assertEqual(model.v9_step_from_ticks(10 * model.COUNTER_HZ), 4.0)
 
-    def test_captured_30fps_bounds_do_not_reach_cap(self):
-        for ticks in (983403, 1021149, 1093400, 1027570, 1101034):
-            self.assertLess(model.v9_step_from_ticks(ticks), 4.0)
-        rates = [model.diagnostic_for_ticks(t)["hypothetical_nominal_rate"] for t in
-                 (983403, 1021149, 1093400, 1027570, 1101034)]
-        self.assertEqual(rates, [32, 31, 29, 30, 28])
+    def test_synthetic_near_30fps_rates_do_not_reach_cap(self):
+        # Synthetic hypothetical deltas: not the tester's private captures.
+        targets = [28, 29, 30, 31, 32]
+        ticks = [round(model.COUNTER_HZ / rate) for rate in targets]
+        for t in ticks:
+            self.assertLess(model.v9_step_from_ticks(t), 4.0)
+        rates = [model.diagnostic_for_ticks(t)["hypothetical_nominal_rate"] for t in ticks]
+        self.assertEqual(rates, targets)
 
     def test_input_rejections(self):
         for ticks in (-1, 1 << 63, 0.5):
