@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest original-code milestone: two SHA-256-verified private E0F3 windows show main+0x03B4E300 translates the S8 step into its reciprocal and rounded 60/step nominal rate (stored in timing config); the caller contains two flag-dependent sites updating the +0xD58 accumulator and calling the config routine. Frame-step cadence remains unverified. Earlier sparse ~50/~30 FPS samples found +0x100 physical-counter durations of 22.106/33.450 ms mean; V9 remains failed.
+> Latest runtime milestone: six E0F3 unmodified-game numeric snapshots at ~30 FPS show the frame-context +0xD50 integer counter and +0xD58 double accumulator equal at all six points and rising together by 591 units over five requested 4-second free-running intervals (~29.55 per requested running second). Timing configuration remains step=1.0, nominal rate=60 throughout. This supports why original gameplay slows below 60 FPS, but does not yet count actual physics calls or solve failed V9.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -647,3 +647,50 @@ slow motion below 60 actual FPS**; do not ask again. Failed V9
 accelerated at ~30 FPS. No stable main/release is modified; do not
 publish V10 or copyrighted game-code JSON. The second game build 33FA
 still lacks this detailed E0F3-specific runtime mapping.
+
+
+## 19. First sparse runtime simulation-accounting trace (~30 FPS, 2026-11-06)
+
+The tester supplied the numeric-only `frame_step_cadence_30fps.json` from
+**unpatched E0F3 gameplay around 30 displayed FPS**. The script took one
+initial snapshot and five more after **requested 4-second free-running
+intervals**. The frame-context integer counter `+0xD50` and
+floating-point accumulator `+0xD58` were **equal in all 6 snapshots**:
+**3297 → 3409 → 3531 → 3652 → 3772 → 3888** in both, with
+increments **112, 122, 121, 120, 116**, total **+591**,
+average **29.55 units per requested guest-running second**.
+
+Every sample retained **integer FPS target 60**, timing config
+**step 1.0, reciprocal 1.0, scaled value approximately 1/60,
+nominal rate 60**. The original gameplay rate therefore does not
+adapt its nominal config when actual rendering slows. The user has
+already verified the unmodified game's slow motion below 60 FPS;
+this counter evidence is consistent with that behavior. **Do not
+re-ask the user about the baseline.**
+
+Crucial caveat: the guest counter advanced **4.805–5.500 seconds**
+between these snapshots, including *debugger pauses*. Dividing 591
+by the whole **24.779 s** gives an artificial low ~23.9 units/s;
+use the nominal four-second free-run windows for rough cadence, but
+neither method is an independently verified per-present or physics
+call count. The initially interrupted `+0x100` cache was
+7,514,603 ticks (~240 ms) because of debugger interference; later
+cached values were ~31–33.5 ms and align with prior steady 30 FPS
+samples. Flags `+0xD38` alternated `0x2B` and `0x0B`
+(bit 5), not yet mapped to a specific update path.
+
+See [CADENCE_30FPS_FIRST_TRACE.md](CADENCE_30FPS_FIRST_TRACE.md).
+
+**Next**: a short opt-in numeric-only GDB trace of the two *original*
+E0F3 timing config call sites at **`main+0x006E6DD8`** and
+**`main+0x006E70F8`**, both `BL main+0x03B4E300`.
+[`guest_frame_step_path_trace.py`](guest_frame_step_path_trace.py)
+checks original instructions before arming temporary breakpoints,
+records which site was reached and live `S0/S8` values, then
+single-steps original instructions and resumes the guest.
+**It is not a FPS/cadence profiler:** debugger stops perturb timing.
+At both call sites, `X21` has been repurposed since the original
+`FDIV`; the helper deliberately reads the original FPS state via
+`X19+0xA8 → manager+0x20` rather than trusting `X21`.
+Synthetic tests are in `tests/test_guest_frame_step_path_trace.py`.
+No new IPS is justified yet and no private code JSON belongs on GitHub.
