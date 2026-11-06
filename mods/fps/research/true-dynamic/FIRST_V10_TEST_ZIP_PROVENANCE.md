@@ -99,3 +99,25 @@ decompressing either original NSO in this session**.
 No raw original Nintendo game instructions or private NSOs were
 uploaded to GitHub. All changes are limited to
 `research/true-dynamic-fps`; the private binary remains in chat.
+
+
+## New evidence after delivery — 2026-11-07
+
+The tester has **actually installed and played this exact ZIP** and
+reports apparently normal dynamic gameplay speed at approximate
+**10–15 FPS and 30–45 FPS**. It is therefore **no longer correct to
+say no gameplay test has been performed**. All statements above that
+say `UNVALIDATED` describe the **original packaging date**, before
+the tester's positive report, and the static analysis limitations.
+The first real E0F3 playtest was successful; full accuracy across
+scenes, precise stopwatch timing and 33FA behavior are not yet
+verified. Keep the previously tested IPS/ZIP SHA-256 values unchanged.
+See [V10_FIRST_SUCCESSFUL_PLAYTEST.md](V10_FIRST_SUCCESSFUL_PLAYTEST.md).
+
+A source-only reproducer of the identical 209-byte IPS (not a
+new patch) is available at
+[reproduce_v10_ips_from_v9_archive.py](reproduce_v10_ips_from_v9_archive.py).
+It reads the user's *private* archived V9 ZIP, rejects wrong SHA-256
+or IPS records, reassembles the 16 authored helper instructions, and
+verifies all branches and final V10 SHA. Synthetic regression tests
+in `tests/test_reproduce_v10_ips_from_v9_archive.py` pass.
