@@ -104,6 +104,8 @@ def collect_snapshots(rsp, state, identity, samples, seconds_between, *, sleep=t
             point = snapshot_state(rsp, state, identity)
             point["sample"] = index + 1
             result.append(point)
+            print(f"Snapshot {index + 1}/{samples}: cached delta "
+                  f"{point['elapsed_100_u64']} ticks", flush=True)
         return result
     finally:
         try:
@@ -129,6 +131,7 @@ def main():
     with socket.create_connection(("127.0.0.1", args.port), timeout=10) as sock:
         sock.settimeout(30)
         rsp = RSP(sock)
+        collector_started = False
         try:
             expect_stop(rsp.packet("?"), "initial debugger attachment")
             print(f"Connected. Load a stable {args.phase} scene; press Enter here to begin.", flush=True)
@@ -139,12 +142,14 @@ def main():
             base = detect_main_base(args.log.read_text(errors="replace"))
             state, identity = locate_state(rsp, base)
             print("Frame state identified. Temporary breakpoint removed. Taking sparse snapshots.", flush=True)
+            collector_started = True
             samples = collect_snapshots(rsp, state, identity, args.samples, args.seconds_between)
         finally:
-            try:
-                rsp.send_continue()
-            except OSError:
-                pass
+            if not collector_started:
+                try:
+                    rsp.send_continue()
+                except OSError:
+                    pass
     report = {
         "build_id": BUILD, "phase": args.phase,
         "fps_label_user_observed": args.fps_label,
