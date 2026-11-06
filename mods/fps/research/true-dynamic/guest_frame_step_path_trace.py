@@ -96,11 +96,11 @@ def trace_paths(rsp, base, hits):
     """
     if not 1 <= hits <= 12:
         raise ValueError("Hit count must be 1..12")
-    check_sites(rsp, base)
     armed = set()
     samples = []
     addresses = {base + offset for offset in SITES}
     try:
+        check_sites(rsp, base)
         for addr in sorted(addresses):
             require_ok(rsp, f"Z0,{addr:x},4")
             armed.add(addr)
