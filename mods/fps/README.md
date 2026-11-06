@@ -38,3 +38,7 @@ python3 -m unittest discover -s tests -v
 See [development details](../../docs/DEVELOPMENT.md) and [attribution](../../docs/ATTRIBUTION.md).
 
 [Mod catalog](../README.md) · [Project home](../../README.md)
+
+## Research branch
+
+Work on an eventual *true dynamic FPS* option is kept separately in the [source-only timing research workspace](research/true-dynamic/README.md). **No test ZIP or ready-to-install patch is published there.** Existing FPS mods remain unchanged.

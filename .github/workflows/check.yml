@@ -2,7 +2,7 @@ name: Verify mods
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'research/**']
   pull_request:
   workflow_dispatch:
 
