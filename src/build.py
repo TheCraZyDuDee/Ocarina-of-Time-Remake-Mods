@@ -26,9 +26,9 @@ BUILDS = {
  },
 }
 MODES = {
- "fixed-30": ("Fixed 30 FPS","Source-derived, user-tested on the E0F3 build."),
- "adaptive": ("Adaptive FPS (Native 20-30-60)","Native discrete 20/30/60 FPS; 20 FPS observed in gameplay."),
- "variable": ("Variable Average FPS (Experimental)","UNTESTED: mixes native frame intervals; may jitter."),
+ "fixed-30": ("Fixed 30 FPS","Fixed 30 FPS, native time-step; tested at normal speed on the E0F3 build."),
+ "adaptive": ("Adaptive FPS (Native 20-30-60)","Experimental native adaptive 20/30/60 FPS. The 20 FPS mode has been tested."),
+ "variable": ("Variable Average FPS (Experimental)","UNTESTED: varies average FPS by alternating supported frame steps; may cause jitter."),
 }
 EXPECTED_PATCH_SHA256 = {
  "fixed-30": ("3864fad59983c9ed459d68447578f72aedb8bd10e3ebd604c017d87c6f99c8f6","9494a3d6d6d779349aa945814447b239a10f038e8978b79f15ddd598d34119b3"),
@@ -132,14 +132,15 @@ def build(output,modes=tuple(MODES)):
             assert hashlib.sha256(patch).hexdigest()==EXPECTED_PATCH_SHA256[mode][i]
             files[f"{TITLE_ID}/{name}/exefs/{build_id}.ips"]=patch
         files[f"{TITLE_ID}/{name}/README.txt"]=(
-            f"{name}\n\n{description}\n\nGame title ID: {TITLE_ID}\n"
-            "Supported main build IDs:\n"+"\n".join(BUILDS)+"\n\n"
-            "Import the ZIP with a compatible emulator mod manager, or place its\n"
-            f'"{name}" folder under load/{TITLE_ID}/.\n'
-            "Enable only ONE FPS mod; disable Orchid built-in 30 FPS.\n"
-            "Restart the game; use 100% speed and disable frame generation.\n"
-            "Check log for IPS patch application. Back up saves.\n"
-            "No game executable or game assets are included.\n"
+            f"{name}\n\n{description}\n\n"
+            f"Game title ID: {TITLE_ID}\n"
+            "Supported main build IDs:\n" + "\n".join(BUILDS) + "\n\n"
+            "Install this ZIP via a supported emulator mod manager, or copy the inner\n"
+            f'"{name}" folder into load/{TITLE_ID}/.\n'
+            "Enable only ONE FPS mod at a time. Disable Orchid built-in FPS patch.\n"
+            "Restart the game with the speed limiter at 100% and frame generation off.\n"
+            "Check the emulator log to confirm the IPS was applied. Back up saves.\n"
+            "No game executable or game assets are distributed.\n"
         ).encode()
         target=output/f"oot-{mode}-both-builds.zip"
         with zipfile.ZipFile(target,"w") as archive:

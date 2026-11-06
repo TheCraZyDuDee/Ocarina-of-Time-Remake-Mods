@@ -18,6 +18,11 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Rebuild ZIPs
         run: python3 src/build.py --output-dir dist
+      - name: Verify packaged ZIPs reproduce exactly
+        run: |
+          for name in oot-fixed-30-both-builds.zip oot-adaptive-both-builds.zip oot-variable-both-builds.zip; do
+            cmp "dist/$name" "releases/$name"
+          done
       - name: Check for prohibited file extensions
         run: |
           if git ls-files | grep -Ei '(\.nso$|\.nca$|\.nsp$|\.xci$|\.keys$|(^|/)main\([0-9]+\)$|(^|/)eden_log.*\.txt$)'; then
