@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test IPS32 source and regression hashes
+      - name: Test IPS32 source, docs and regression hashes
         run: python3 -m unittest discover -s tests -v
       - name: Rebuild ZIPs
-        run: python3 src/build.py --output-dir dist
+        run: python3 mods/fps/build.py --output-dir dist
       - name: Verify packaged ZIPs reproduce exactly
         run: |
           for name in oot-fixed-30-both-builds.zip oot-adaptive-both-builds.zip oot-variable-both-builds.zip; do

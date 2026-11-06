@@ -1,49 +1,34 @@
 # Ocarina of Time Remake Mods
 
-Standalone **IPS32 / ExeFS patches** for *The Legend of Zelda: Ocarina of Time* on Nintendo Switch 2. Developed with AI assistance.
+A collection of standalone mods for *The Legend of Zelda: Ocarina of Time* on Nintendo Switch 2, developed with AI assistance. Mods are distributed as small patches, **not game files**.
 
-## Mods and downloads
+## Browse mods
 
-| Mod | Description | Status |
+Visit the **[mod catalog](mods/README.md)** for all categories.
+
+### Frame rate and performance
+
+| Mod | What it does | |
 | --- | --- | --- |
-| [Fixed 30 FPS](releases/oot-fixed-30-both-builds.zip) | Uses the game's native 30 FPS controller; no slow motion. | **Gameplay-tested** on the E0F3 build. |
-| [Adaptive FPS](releases/oot-adaptive-both-builds.zip) | Enables the game's native adaptive **20 / 30 / 60 FPS** modes. | **20 FPS observed working**; other modes need testing. |
-| [Variable-average FPS](releases/oot-variable-both-builds.zip) | Attempts intermediate *average* rates by mixing supported frame intervals. | **Experimental and untested**; possible uneven pacing. |
+| [Fixed 30 FPS](mods/fps/fixed-30/README.md) | Stable 30 FPS with normal game speed. | [Download](releases/oot-fixed-30-both-builds.zip) |
+| [Native Adaptive FPS](mods/fps/native-adaptive/README.md) | Lets the game select its native 20/30/60 FPS modes. | [Download](releases/oot-adaptive-both-builds.zip) |
+| [Variable-average FPS](mods/fps/variable-average/README.md) | Experimental intermediate average FPS. | [Download](releases/oot-variable-both-builds.zip) |
 
-Each ZIP supports **both** documented executable versions; the emulator loads the matching IPS by build ID.
+Each mod has its own page with compatibility, testing status and installation notes. More categories can be added without changing this layout.
 
-**Supported game Title ID:** `0400486024DEC000`
+## Getting started
 
-- `E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348` — update v131072 in Orchid's notes (user-tested fixed 30 FPS).
-- `33FA6C2C23848282A77E8B88A0A93F4887C55920` — base v65536 in Orchid's notes (statically checked).
+1. Choose a mod and read its linked page.
+2. Download its ZIP, then import it with a compatible emulator's mod manager or extract the title-ID folder into the emulator's `load/` folder.
+3. Enable the mod and restart the game.
 
-These version labels are from [Orchid's source](https://github.com/MythosOfs/Orchid/blob/main/src/core/file_sys/patch_manager.cpp); verify the **loaded build ID** in your emulator log.
+**Only one FPS mod at a time.** If using Orchid, disable its built-in FPS patch before installing a standalone FPS mod. Back up saves before trying experimental changes.
 
-## Install
+## Source, releases and licensing
 
-1. Download **one ZIP** from the table above.
-2. Import it with a compatible emulator mod manager, or extract its `0400486024DEC000/` folder into the emulator's `load/` directory.
-3. **Enable only one FPS mod at a time.** Disable earlier FPS patches and Orchid's built-in 30 FPS patch.
-4. Fully restart the game at **100% emulation speed** with frame generation turned off.
-5. If nothing changes, look for `Applying IPS patch from mod` in the emulator's log and check the loaded build ID.
+- [FPS mods and compatible builds](mods/fps/README.md)
+- [Build and contribution notes](docs/DEVELOPMENT.md)
+- [Downloadable ZIP archives](releases/) and [GitHub Releases](https://github.com/TheCraZyDuDee/Ocarina-of-Time-Remake-Mods/releases)
+- [Attribution and distribution policy](docs/ATTRIBUTION.md) · [MIT License](LICENSE)
 
-Back up saves before using experimental mods. A reported FPS number does not by itself prove that physics and gameplay speed are correct.
-
-## Build from source
-
-Source: [`src/build.py`](src/build.py); regression tests: [`tests/test_build.py`](tests/test_build.py).
-
-```sh
-python3 src/build.py --output-dir dist
-python3 -m unittest discover -s tests -v
-```
-
-The builder requires **only Python 3's standard library**. No Nintendo data or other external dependencies are downloaded. Optional local verification against your own *decompressed* game executable is described in [Development](docs/DEVELOPMENT.md).
-
-The installable archives are in [`releases/`](releases/). The automated checks run on commits, and version tags can be used to publish GitHub Releases.
-
-## License and credits
-
-This repository's original source, documentation, and small compatibility patches are under the [MIT license](LICENSE). No game binaries, keys, game assets or copied emulator source are distributed. The fixed-FPS instruction locations were described by the [GPL-licensed Orchid emulator](https://github.com/MythosOfs/Orchid); no Orchid source files have been copied here. See [Attribution](docs/ATTRIBUTION.md).
-
-Unofficial project. Not affiliated with or endorsed by Nintendo or emulator developers.
+No Nintendo game executables, encryption keys, decrypted dumps, or extracted assets are included. The patches are unofficial and are not endorsed by Nintendo.

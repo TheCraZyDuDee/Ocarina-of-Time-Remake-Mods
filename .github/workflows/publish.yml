@@ -15,7 +15,7 @@ jobs:
       - name: Test and build
         run: |
           python3 -m unittest discover -s tests -v
-          python3 src/build.py --output-dir dist
+          python3 mods/fps/build.py --output-dir dist
       - name: Upload mod ZIPs
         uses: softprops/action-gh-release@v2
         with:
