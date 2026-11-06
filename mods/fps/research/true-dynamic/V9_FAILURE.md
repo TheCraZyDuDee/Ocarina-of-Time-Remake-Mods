@@ -125,3 +125,20 @@ patched mode, update order, duplicated updates or other issues.
 Further timer snapshots are lower priority than static and runtime
 analysis of `s8` consumers. See
 [QUIET_GAMEPLAY_30FPS_TRACE.md](QUIET_GAMEPLAY_30FPS_TRACE.md).
+
+
+## Original-game frame-step accumulator trace (~30 FPS, 2026-11-06)
+
+Live sparse numeric snapshots during unpatched E0F3 gameplay around 30
+FPS show `frame_context+0xD50` and `+0xD58` increased together by
+**591** units over five requested four-second free-running intervals
+(~29.55 units per nominal running second), with exact equality in all
+six snapshots. The derived rate configuration remained **step 1.0,
+reciprocal 1.0, and nominal 60**. This supports the unpatched
+slow-motion baseline, not the cause of V9's opposite acceleration.
+The guest-counter elapsed intervals also included debugger stop time,
+so the result is a coarse state progression observation, not a precise
+runtime physics call count. The next step is determining which of the
+two verified timing configuration call sites actually runs in gameplay
+and whether `S8` reaches it on both paths. See
+[CADENCE_30FPS_FIRST_TRACE.md](CADENCE_30FPS_FIRST_TRACE.md).
