@@ -27,6 +27,8 @@ class Debugger:
     def regs(self):return {'pc':BASE + mod.HOOKS[mod.BUILD],'x21':STATE}
     def mem(self, address, size):
         self.calls.append(('mem',address,size))
+        if (address,size)==(BASE + mod.HOOKS[mod.BUILD],4):
+            return struct.pack('<I', 0x1E201828)
         if (address,size)==(STATE,8):
             ident=ID + (8 if self.changed else 0)
             return struct.pack('<Q',ident)
