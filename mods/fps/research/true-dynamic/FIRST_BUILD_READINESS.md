@@ -109,7 +109,37 @@ GDB sessions. Exact commands and requirements:
 - [ ] Fix any failures before generating a first *usable* dynamic
   FPS release; map and validate 33FA independently.
 
-**User instruction:** once these research and packaging prerequisites
-are met, actually produce the first installable build for testing;
-do not indefinitely substitute additional documents for the mod.
-No build goes on stable main or release without empirical validation.
+**2026-11-06 update — FIRST EXPERIMENTAL ZIP ACTUALLY CREATED.**
+The user's File Library contained the already-built archived V9 test
+ZIP. Its previously source-validated E0F3 helper and code-cave addresses
+were reused directly, removing ONLY the two unrelated V9 controller
+patch records. The resulting private E0F3-only V10 isolated-step test
+ZIP is now attached in chat, SHA-256
+`82489acb9aeb8876d69a898c4f2d4adc9b3f36ddc059f1c5cd50a264653d8b9c`.
+Independent AArch64 assembly of the 16 helper instructions matched,
+all branch destinations/record offsets/ZIP CRC checked, and README
+explicitly marks it UNVALIDATED. See
+[FIRST_V10_TEST_ZIP_PROVENANCE.md](FIRST_V10_TEST_ZIP_PROVENANCE.md).
+
+The ZBIC path is no longer a hard blocker **for this specific E0F3
+isolated test build**, because the archived V9 IPS already contained
+the validated helper/trampoline positions. The alternative
+original-compressed-NSO build procedure still exists for future
+modifications and for determining full module code layout.
+No actual Eglantine gameplay verification has taken place for V10.
+**DO NOT claim that the game is normal speed until the user tests it.**
+
+Next gates:
+- [x] Generate and statically audit first private E0F3-only IPS ZIP.
+- [ ] User installs *only this test patch*, with all other FPS mods
+  disabled, backups taken, emulator at 100% speed and no framegen.
+- [ ] Verify game speed at reduced actual FPS (first 30, then 45/15)
+  relative to ordinary 60 FPS, and inspect menu, loading and cutscene
+  behavior. If wrong, treat it as a failed isolation test, not a
+  working release.
+- [ ] Iterate on the actual failure; no stable main, releases or 33FA
+  additions until the corresponding build is independently validated.
+
+**User instruction:** produce first test builds when research supports
+them, but never substitute *static* validation for real gameplay
+testing or prematurely label an experiment a working final release.
