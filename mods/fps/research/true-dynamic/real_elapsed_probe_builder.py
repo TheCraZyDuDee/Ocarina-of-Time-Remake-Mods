@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V9 source-only diagnostic: elapsed-time frame-step scaling for OoT Switch 2.
+"""V9 FAILED — archived source for research reproduction ONLY.
 
 NOT A COMPLETED DYNAMIC FPS MOD. Uses original user-provided decompressed
 NSOs for read-only source validation; generates a small IPS32 patch ZIP
@@ -169,10 +169,19 @@ def patch_for(path: Path, build: str, compiled: tuple[int, ...]):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--reproduce-known-bad-v9", action="store_true",
+                        help="Override safety stop: reproduce a known-failed, unsafe V9 ZIP")
     parser.add_argument("--e0f3", type=Path, required=True)
     parser.add_argument("--base", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("dist/oot-v9-local-test.zip"))
     args = parser.parse_args()
+    if not args.reproduce_known_bad_v9:
+        parser.error(
+            "V9 FAILED gameplay-speed testing: the 15 FPS-normal / 30 FPS-fast pattern "
+            "suggests its unverified controller+0x100 time field saturates the 4-tick "
+            "clamp. No installable build is generated without the explicit, "
+            "research-only --reproduce-known-bad-v9 override."
+        )
     compiled = assemble()
     files = {}
     for build, nso in zip(BUILDS, (args.e0f3, args.base)):

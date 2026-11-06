@@ -62,16 +62,16 @@ New read-only tools:
 Static evidence does **not** show which controller runs during menus versus
 gameplay. A safe hook into the actual simulation dispatcher is still required.
 
-## Experimental V9 elapsed-time probe (source only)
+## Failed V9 elapsed-time probe (archived source only)
 
-A new [read-only validated local builder](real_elapsed_probe_builder.py) targets
+The **failed** [V9 source builder](real_elapsed_probe_builder.py) targeted
 the game's **main per-render simulation multiplier**. A similar instruction
 sequence is present in **both** known executables:
 
 - E0F3: `main+0x006E6CC4`
 - 33FA: `main+0x006B5A08`
 
-The original step is `(60 or 30) / target_fps`. V8A left that step
+V9's original step was `(60 or 30) / target_fps`. V8A left that step
 unchanged while forcing presentation interval 1, explaining the very fast
 menus and movement at higher FPS. V9 replaces that **one** floating-point
 division with a call-free helper that uses the game's cached elapsed
@@ -98,6 +98,22 @@ into `releases/` or create a tagged GitHub Release. Test only after
 backing up saves and disabling every other FPS mod.
 
 See the [source-only V9 tests](../../../../tests/test_elapsed_probe.py).
+
+## V9 gameplay verdict
+
+**Gameplay result: failed.** The tester observed approximately normal
+speed at 15 FPS, excessive speed when presentation reached around 30 FPS,
+and slowdown below 15 FPS. That pattern is consistent with the V9
+simulation step remaining at its **four-tick maximum**. V9 read
+`controller+0x100` assuming it contained the previous frame duration,
+but this field's provenance was not established. Do **not** treat V9's
+original "real elapsed time" description as verified.
+
+See the [V9 failure analysis](V9_FAILURE.md), [offline model](v9_failure_model.py)
+and [new regression checks](../../../../tests/test_v9_failure.py).
+V9's source remains on this branch for diagnosis, but its build command
+now refuses to generate an IPS unless explicitly overridden for research.
+No broken ZIP is present in GitHub.
 
 ## Remaining work before another IPS
 
