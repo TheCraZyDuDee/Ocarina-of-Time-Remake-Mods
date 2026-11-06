@@ -89,3 +89,22 @@ are unchanged.
 
 See [the offline failure model](v9_failure_model.py) and
 [its regression tests](../../../../tests/test_v9_failure.py).
+
+
+## Update: real physical-counter duration observed around 50 FPS (2026-11-06)
+
+Subsequent E0F3 source tracing established that the `+0x100` producer
+subtracts two `CNTPCT_EL0` readings. The first sparse, comparatively
+non-invasive unmodified-gameplay run recorded five cached `+0x100`
+values equivalent to **20.0–23.0 ms**, matching the tester's approximate
+**50 FPS** overlay. All five were below the 4.0-tick saturation
+threshold of 66.7 ms at nominal 60 Hz. The observed source is **not a
+simple cumulative absolute timestamp** under these conditions.
+
+The four-tick saturation explanation remains a **hypothesis for failed
+V9 gameplay**, not a verified diagnosis. Unmodified 50 FPS samples
+cannot tell us what values V9 received at ~30 FPS, whether the field
+was updated at the right time, or whether its replacement simulation
+multiplier affected subsystems differently. Focus on timing order,
+actual render/update cadence and downstream consumers before another IPS.
+See [QUIET_GAMEPLAY_FIRST_TRACE.md](QUIET_GAMEPLAY_FIRST_TRACE.md).
