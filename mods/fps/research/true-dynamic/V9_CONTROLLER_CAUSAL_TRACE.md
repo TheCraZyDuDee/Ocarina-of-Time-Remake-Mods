@@ -49,3 +49,20 @@ We have enough original E0F3 code to statically isolate the *causal knobs*: a sk
 **Do not make another combined V10 attempt.** The next authorized research stage should be one-change-at-a-time experiments with original source-byte guards and obvious rollback paths, or a short numeric-only patched-game telemetry capture if users accept a known-failed research patch. However, replaying V9 is not necessary merely to explain its static inconsistency. We should determine native allowed presentation intervals, whether a rate config callback writes that interval behind the controller, and how to keep simulation time independent of presentation pacing.
 
 The uploaded raw JSON and any generated disassembly remain private, the GitHub branch remains `research/true-dynamic-fps` only, and no release ZIP/IPS is published. Detailed 33FA equivalence is NOT established from this E0F3 capture.
+
+
+## Correction after full FPS/presentation source batch (2026-11-06)
+
+The native presentation setter at `main+0x0346C5C0` does more than
+forward the controller interval. It writes **`timing+0xFC =
+60/interval`** (or 60 if interval zero), so V9's forced `W1=1`
+also forces that rate field to 60. The original cached elapsed counter
+is `timing+0x100`, **not the same field**. Native shared FPS setter
+at `main+0x004DC0F0` has a state-gated special path for
+requests >=40 that can bypass the normal divisor-of-60 requirement.
+The callback at `main+0x02F52DF0` is independently confirmed to
+consume `config+0x10` variable step for per-object countdowns and
+interpolation; it has no direct BL call to these two FPS/present
+setters in the verified 4 KB window. None of this proves that
+V9's actual stored interval differed from 1 or exactly why it ran
+fast. See [TIMING_BATCH_2026_11_06.md](TIMING_BATCH_2026_11_06.md).
