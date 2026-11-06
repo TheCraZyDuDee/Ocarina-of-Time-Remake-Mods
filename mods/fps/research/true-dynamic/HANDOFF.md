@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest original-game runtime milestone: optional E0F3 timing-config callback is PRESENT during gameplay, its virtual method resolving to main+0x02F52DF0; the first 128 callback bytes passed SHA-256 and original-code guards. Its actual downstream effects remain UNKNOWN. One 9,216-byte private source batch (callback 4,096, present setter 2,560, FPS setter 2,560) is now prepared to eliminate three separate emulator test cycles. V9's forced presentation interval 1 while native rate uses stored 60/interval is a conditional structural mismatch; root cause unproven. V9 FAILED, no validated V10.
+> Latest verified source milestone: tester supplied 9,216-byte E0F3 triple-function batch; ALL SHA-256 hashes pass. Callback main+0x02F52DF0 reads config+0x10 variable S8 step and uses it for per-object countdown and FMADD interpolation, plus normalized scales. Present setter main+0x0346C5C0 writes timing+0xFC=60/interval; V9 forcing interval 1 also forces that field to 60. A first E0F3 STEP-ONLY research IPS builder is prepared and synthetic CI-tested; it leaves both V9 guard/present edits ORIGINAL. No real ZIP yet: private NSOs are still ZBIC-compressed, and full gameplay is not validated.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -975,3 +975,66 @@ accessible in the container. The known-failed V9 has three distinct
 changes and a conditionally contradictory native FPS/present interval
 configuration; do not claim its speed-up is conclusively diagnosed.
 No V10 IPS, stable main change, proprietary dump or release was made.
+
+
+## 26. Full source batch confirms step-sensitive callback; first build generator prepared (2026-11-06)
+
+User explicitly instructed: **when research supports an installable first
+experimental dynamic FPS build, actually generate it**; do not simply
+issue indefinite analysis notes. First build should be for research
+play testing, not a stable release, until variable-speed correctness
+is demonstrated. User values minimizing repeated emulator capture cycles.
+
+The user's PRIVATE `timing_batch_private.json` supplied the requested
+**4096 + 2560 + 2560 = 9216 bytes** for original E0F3 callback,
+original presentation setter and original shared FPS setter.
+All three SHA-256 digests matched. See
+[TIMING_BATCH_2026_11_06.md](TIMING_BATCH_2026_11_06.md).
+**Never commit the private raw JSON/disassemblies or decompressed NSOs.**
+
+- Callback `main+0x02F52DF0` loads the variable step from
+  `config+0x10` at `main+0x02F531E4`, and uses step for
+  conditional integer object countdown updates, floating-point
+  `FMADD` interpolation, and scale normalization by dividing by
+  step. Also writes aggregate config floats. It is a **genuine
+  step-sensitive consumer**, not just a nominal rate forwarding
+  wrapper. The code windows show **no direct BL call** from the
+  callback into either native FPS or presentation setter; indirect
+  nested dispatches cannot be excluded. Exact object type and
+  whole-engine correct physics remain unknown.
+- Presentation setter `main+0x0346C5C0` passes `W1=interval`
+  to lower-level `main+0x00F49970`, then stores an integer
+  **`timing+0xFC = 60 / interval`** (or 60 if interval 0).
+  Hence V9's forced interval 1 also forces `+0xFC=60`, possibly
+  diverging from its stored interval's FPS rate. This is a
+  **different field** from the original timing tick delta
+  `timing+0x100`; don't conflate them.
+- Original shared FPS setter `main+0x004DC0F0` ordinarily
+  validates a positive requested FPS as a divisor of 60, but has
+  a special state-gated `request >= 40` path bypassing the normal
+  divisor test. Correct prior categorical language: **not all
+  non-divisor FPS requests are unconditionally rejected**.
+
+From this information, a first **step-only E0F3 prototype** is
+appropriate to *prepare*, not yet declare working. New source-only
+[isolated_step_research_builder.py](isolated_step_research_builder.py)
+imports the audited V9 elapsed-tick step helper **but patches
+ONLY original `main+0x006E6CC4` and bounded code caves**. It
+verifies original E0F3 source opcodes including that both
+`main+0x03B4EF90` guard and `main+0x03B4F080` presentation
+load remain unchanged; output is an explicitly opt-in private
+research IPS ZIP, never silently published or overwritten.
+Synthetic tests are in
+`tests/test_isolated_step_research_builder.py`, and recent GitHub
+CI passed after a fail-closed cave-capacity fix. This isolates
+simulation stepping from the two controller edits known to have
+been confounded in failed V9.
+
+**There is currently no actual private first ZIP**; the uploaded
+original E0F3 NSO is still ZBIC-compressed, while the builder
+requires the user's original **decompressed, hash-verified** NSO.
+No real game-cave location or executable IPS hash was inferred or
+fabricated. The exact prerequisites for a first private test build,
+and the 60/45/30/15 FPS gameplay validation gate, are recorded in
+[FIRST_BUILD_READINESS.md](FIRST_BUILD_READINESS.md). Do not
+change stable main, ship a release, or claim V10 verified yet.
