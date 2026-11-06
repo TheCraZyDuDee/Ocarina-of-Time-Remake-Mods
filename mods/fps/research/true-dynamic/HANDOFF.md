@@ -693,4 +693,9 @@ At both call sites, `X21` has been repurposed since the original
 `FDIV`; the helper deliberately reads the original FPS state via
 `X19+0xA8 → manager+0x20` rather than trusting `X21`.
 Synthetic tests are in `tests/test_guest_frame_step_path_trace.py`.
-No new IPS is justified yet and no private code JSON belongs on GitHub.
+See [FRAME_STEP_PATH_TRACE_GUIDE.md](FRAME_STEP_PATH_TRACE_GUIDE.md) for
+exact Linux commands and caution that software breakpoints temporarily
+modify guest instructions while armed, then are removed. The probe
+has passed synthetic GitHub CI but has not run live on the user's
+Eglantine build. No new IPS is justified yet and no private code JSON
+belongs on GitHub.
