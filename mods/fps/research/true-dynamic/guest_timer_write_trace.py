@@ -56,7 +56,6 @@ def trace_writes(rsp, *, base, build_id, offset=0x100, hits=4):
     if offset not in ALLOWED_FIELDS or hits not in range(1, 9):
         raise ValueError("Unsupported field offset or write count")
     hook = base + HOOKS[build_id]
-    verify_unmodified_hook(rsp, hook)
     breakpoint_armed = False
     watcher_armed = False
     addr = None
@@ -64,6 +63,7 @@ def trace_writes(rsp, *, base, build_id, offset=0x100, hits=4):
     result = []
     initial = None
     try:
+        verify_unmodified_hook(rsp, hook)
         send_ok(rsp, f"Z0,{hook:x},4")
         breakpoint_armed = True
         stop = rsp.packet("c")
@@ -178,7 +178,7 @@ def main():
             # Read log *after* the guest is running: the main load address
             # can differ between launches.
             base = detect_main_base(args.log.read_text(errors="replace"))
-        except OSError as e:
+        except (OSError, ValueError) as e:
             rsp.send_continue()
             raise RuntimeError(f"Could not read current emulator log: {e}") from e
         report = trace_writes(rsp, base=base, build_id=args.build_id,

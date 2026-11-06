@@ -74,7 +74,7 @@ class WatchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             trace.trace_writes(rsp, base=BASE, build_id=BUILD)
         self.assertFalse(any(x.startswith(('Z0','Z2')) for x in rsp.commands))
-        self.assertFalse(rsp.running)
+        self.assertTrue(rsp.running)
 
     def test_unexpected_debugger_event_cleans_up(self):
         rsp = FakeRsp()
