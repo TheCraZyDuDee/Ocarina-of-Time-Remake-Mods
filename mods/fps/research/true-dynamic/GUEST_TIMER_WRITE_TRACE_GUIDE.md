@@ -59,3 +59,11 @@ saves. Unknown-game-address and error paths fail closed.
 The purpose is **instruction provenance**, not frame timing: because
 watchpoints stop the guest, observed time values will be inflated and
 cannot validate V9's units or real-time gameplay speed.
+## Results from the first real run
+
+The tester observed 4 writes to +0x100, all reporting the exact E0F3
+code location main+0x0346C7EC. Values were 7,040,467; 19,138,755;
+476,073; and 1,263,539, in that order. No need to repeat watchpoint
+sampling yet. Instead capture a private small instruction window around
+the write PC using guest_writer_static_window.py, so that the exact writer
+and its inputs can be identified. See TIMER_WRITER_FIRST_TRACE.md.

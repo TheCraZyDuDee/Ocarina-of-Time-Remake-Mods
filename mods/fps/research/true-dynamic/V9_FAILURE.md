@@ -27,7 +27,11 @@ The ARM64 instruction sequence and associated hook placement were statically
 checked, but **the field at +0x100 was never proven to contain a per-frame
 time delta**. V9's prior documentation overclaimed this. It might be a
 cumulative time counter, a differently scaled value or an unrelated field.
-No guest runtime values have been captured.
+This statement reflected the original V9 analysis. Subsequent live debugger
+samples and write-watchpoints have captured candidate field values and one
+consistent E0F3 writer PC. See TIMER_WRITER_FIRST_TRACE.md for details.
+Those paused-debugger values do **not** establish that V9 saturated during
+uninterrupted gameplay.
 
 ## Why the four-tick clamp matters
 

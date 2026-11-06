@@ -199,3 +199,17 @@ emulator's write-watchpoint API to find the specific instruction
 that produces `x21+0x100`. Tests are synthetic and pass; **not yet
 tested live**. No experimental IPS should be made from these values
 alone.
+
+## First live write-site observation (E0F3)
+
+A GDB write watchpoint on x21+0x100 fired four times, all reporting
+**main+0x0346C7EC**. The samples were not monotonically increasing and
+included 476,073 and 1,263,539, potentially ~15.2 ms and ~40.4 ms if
+these are native 31.25 MHz counter ticks. This narrows timer provenance
+but does not prove whole-frame elapsed time. See
+[TIMER_WRITER_FIRST_TRACE.md](TIMER_WRITER_FIRST_TRACE.md).
+
+[guest_writer_static_window.py](guest_writer_static_window.py) reads a
+small bounded original-code window from the user's guest memory at debugger
+startup, without breakpoints. It produces a PRIVATE JSON for analysis:
+**do not commit that output or private game code to this repository**.

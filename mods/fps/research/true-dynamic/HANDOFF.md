@@ -406,3 +406,18 @@ This is source-only diagnostics, NOT V10 or a working FPS mod.
 Next: obtain four write-site hits from gameplay, verify instruction
 provenance and units and distinguish real elapsed *full frame* time
 from per-subsystem/partial time. Only then consider another IPS.
+
+## 13. First live Eglantine timer writer site (2026-11-06)
+
+The tester obtained four real GDB Z2 watchpoint hits on E0F3 at x21+0x100,
+all reporting PC **main+0x0346C7EC**. Values were 7,040,467; 19,138,755;
+476,073; 1,263,539. They are not monotonically increasing. At the guest
+31.25 MHz clock the last two represent 15.2 and 40.4 milliseconds, provided
+this field uses counter ticks. The watchpoint stop semantics and writer opcode
+have not been disassembled, so this is still a candidate duration source.
+
+Read TIMER_WRITER_FIRST_TRACE.md. An independent guest_writer_static_window.py
+helper captures 640 bytes around the writer PC at initial debugger halt,
+verifies original frame-step code and resumes execution without breakpoints.
+The produced JSON is PRIVATE and contains original code words; do not publish
+it or the proprietary binaries. Analyze it privately before designing V10.
