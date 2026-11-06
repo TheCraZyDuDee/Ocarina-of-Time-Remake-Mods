@@ -170,3 +170,30 @@ not causally isolated in user gameplay reports. Future source-only
 analysis should map whether their interactions force reconfiguration
 or duplicate simulation. Do not use known-failed V9 for normal play.
 See [FRAME_STEP_PATH_30FPS_FIRST_TRACE.md](FRAME_STEP_PATH_30FPS_FIRST_TRACE.md).
+
+
+## Correction: E0F3 flag bit 1 selects distinct config-call paths
+
+A later **verified source-level control-flow graph** of the contiguous
+2816-byte E0F3 frame-step excerpt resolves a potentially misleading
+interpretation of the two callsites. A `TBNZ` on `W9` bit 1
+(`frame_context+0xD38`) at `main+0x006E6CC8` selects between a
+first `+1/+S8` accounting path (callsite
+`main+0x006E6DD8`) and a second accounting path (callsite
+`main+0x006E70F8`). **There is no in-window direct-branch path
+from the first call's continuation to the second call**, or vice versa.
+Two static callsites alone therefore do **not** establish duplicated
+simulation steps per invocation. The original eight-hit gameplay
+trace had flags `0x0B` (bit 1 set) and took the second path,
+consistent with this control flow.
+
+Flags `0x2B` found earlier also have bit 1 set. The extra bit 5
+is explicitly `LDSET` and `LDCLR` around a callback region,
+consistent with an in-progress flag, not necessarily a distinct
+simulation/update mode. Bit 5's complete lifecycle is not proven.
+
+See [E0F3_FRAME_STEP_BRANCH_GRAPH.md](E0F3_FRAME_STEP_BRANCH_GRAPH.md).
+Do not attribute failed V9's excessive speed to two calls per frame
+without a measured, **patched-game** call trace or other independent
+evidence. The native timing callback and V9's three-way changes
+remain higher-priority unresolved causes.
