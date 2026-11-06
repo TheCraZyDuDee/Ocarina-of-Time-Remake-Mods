@@ -108,3 +108,20 @@ was updated at the right time, or whether its replacement simulation
 multiplier affected subsystems differently. Focus on timing order,
 actual render/update cadence and downstream consumers before another IPS.
 See [QUIET_GAMEPLAY_FIRST_TRACE.md](QUIET_GAMEPLAY_FIRST_TRACE.md).
+
+
+## Second timing condition around 30 FPS (2026-11-06)
+
+A second **unpatched E0F3** sparse gameplay trace at approximately 30
+FPS recorded `X21+0x100` duration values of **31.469–35.233 ms**
+(mean **33.450 ms**), consistent with the expected 33.333 ms period.
+These would yield **1.888–2.114 V9 steps** at nominal 60 Hz if
+sampled fresh by the V9 helper. None reached the 4-tick cap threshold.
+The separate `+0x148` field remained near **20 ms**. Taken with the
+prior ~50 FPS data (22.106 ms mean `+0x100`), this supports a useful
+FPS-sensitive timer but **does not demonstrate V9's live inputs or
+correctness**. The speed-up could still arise from stale inputs in the
+patched mode, update order, duplicated updates or other issues.
+Further timer snapshots are lower priority than static and runtime
+analysis of `s8` consumers. See
+[QUIET_GAMEPLAY_30FPS_TRACE.md](QUIET_GAMEPLAY_30FPS_TRACE.md).
