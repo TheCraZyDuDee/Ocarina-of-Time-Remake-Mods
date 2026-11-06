@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest runtime-backed V9 audit milestone: user's SHA-256-verified 2048-byte E0F3 original controller window reveals shared FPS setter receives rate derived from stored interval (60/interval at controller+0x58) while the present setter normally receives that stored interval (controller+0x48). Failed V9 FORCES present argument 1 yet retains interval-based FPS setter; for stored interval !=1 this is a structural rate/presentation mismatch, and the guard NOP forces evaluation past the controller+0x60 flag. This does not prove V9's actual interval or root cause. V9 remains failed; no V10 validated.
+> Latest original-game runtime milestone: optional E0F3 timing-config callback is PRESENT during gameplay, its virtual method resolving to main+0x02F52DF0; the first 128 callback bytes passed SHA-256 and original-code guards. Its actual downstream effects remain UNKNOWN. One 9,216-byte private source batch (callback 4,096, present setter 2,560, FPS setter 2,560) is now prepared to eliminate three separate emulator test cycles. V9's forced presentation interval 1 while native rate uses stored 60/interval is a conditional structural mismatch; root cause unproven. V9 FAILED, no validated V10.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -933,3 +933,45 @@ Next goal: establish whether the converter callback and interval
 controller write competing timing state. No verified playable V10 or
 new release. Keep `main` untouched; 33FA still needs independent
 original-code mapping for this detailed behavior.
+
+
+## 25. Callback present and one-shot multi-function capture (2026-11-06)
+
+The tester uploaded **`config_callback_target.json`** from the
+successful E0F3 read-only callback resolver. The original-callee
+fingerprints match; the normal-gameplay timing config was **step
+1.0, nominal rate 60**. Crucially, the optional `config+0x1C8`
+callback pointer is **non-null** and its vtable `+0x10` method
+resolves to **`main+0x02F52DF0`**. Its first **128 original bytes**
+were SHA-256 verified:
+`e138ddb9b69b7b8d9c8db9443980261995f0efe24586d0e11111bc24727f6a50`.
+The disassembly begins with state checks and branches beyond this
+short window. **Callback presence does not establish whether it
+actually adjusts native FPS, presentation, or physics.** The input
+JSON and guest instructions remain PRIVATE, never committed.
+
+Responding to the user's explicit need to reduce back-and-forth, a
+new one-shot source tool
+[`guest_timing_batch_capture.py`](guest_timing_batch_capture.py)
+was built to capture **three full bounded original E0F3 functions in
+ONE emulator launch**, after checking four exact controller opcodes,
+two direct BL targets, the original FDIV hook, and the prior callback
+prefix digest: callback `main+0x02F52DF0` (4096 B), native
+presentation setter `main+0x0346C5C0` (2560 B), and shared FPS
+setter `main+0x004DC0F0` (2560 B). Total **9216 B**. Unlike
+previous numeric gameplay sampling, the game need not load a save:
+it is pure original-code inspection. No breakpoints, injection or
+memory writes. One single private `timing_batch_private.json`
+is the output. See
+[ONE_SHOT_TIMING_BATCH_GUIDE.md](ONE_SHOT_TIMING_BATCH_GUIDE.md).
+Synthetic tests in `tests/test_guest_timing_batch_capture.py`
+passed GitHub Actions; live Eglantine validation pending.
+
+**STOP asking for individual 128-byte or 1024-byte captures** when
+these functions can be studied with a single batch. Further runtime
+hypotheses should also be batched. Original full NSOs remain available
+only privately and ZBIC-compressed; no open-source decompressor was
+accessible in the container. The known-failed V9 has three distinct
+changes and a conditionally contradictory native FPS/present interval
+configuration; do not claim its speed-up is conclusively diagnosed.
+No V10 IPS, stable main change, proprietary dump or release was made.
