@@ -28,6 +28,8 @@ def synthetic_words():
     # On the taken branch, bypass the synthetic first-call region.
     # The REAL original game uses a longer conditional path instead.
     words[cfg.GATE + 0x50] = B(cfg.GATE + 0x50, cfg.SECOND_CALL)
+    # Clear-bit synthetic flow must skip over the taken-branch stub.
+    words[cfg.GATE + 0x4C] = B(cfg.GATE + 0x4C, cfg.FIRST_CALL)
     return words
 
 
