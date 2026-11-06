@@ -94,3 +94,18 @@ small, verified read-only emulator observation or a complete private,
 hash-verified E0F3 decompressed inspection image (the currently attached
 NSOs are ZBIC-compressed). Do not publish game binaries or raw instruction
 windows. The known-failed V9 cannot be recommended for gameplay.
+
+
+## Subsequent batch correction: callback is a step consumer
+
+The full original E0F3 source batch resolved the optional callback
+at `main+0x02F52DF0`. It loads `config+0x10` step and performs
+per-object integer countdown, interpolation and aggregate float
+updates. There is no direct call to either FPS setter or
+presentation setter in its verified 4096-byte code window.
+The earlier suggestion that the callback specifically invokes the
+native non-divisor FPS validator is **not supported** by this source
+window. Other indirect dispatch remains possible. Separately, the
+native FPS setter has a special >=40 path that bypasses its normal
+divisor rule under additional state conditions. See
+[TIMING_BATCH_2026_11_06.md](TIMING_BATCH_2026_11_06.md).
