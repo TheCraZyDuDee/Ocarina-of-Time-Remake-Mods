@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest offline V9 audit milestone: original E0F3 guard at main+0x03B4EF90 is TBNZ W8,#0 with exact branch target main+0x03B4F074, only 12 bytes before original presentation-argument load at main+0x03B4F080. V9 replaced the guard with NOP (forced fallthrough) and replaced load from [X20+0x48] with W1=1, in addition to the FDIV S8 hook. Their combined effects remain unisolated. A guarded 2048-byte read-only controller capture tool and synthetic tests are prepared on research branch; V10 not validated.
+> Latest runtime-backed V9 audit milestone: user's SHA-256-verified 2048-byte E0F3 original controller window reveals shared FPS setter receives rate derived from stored interval (60/interval at controller+0x58) while the present setter normally receives that stored interval (controller+0x48). Failed V9 FORCES present argument 1 yet retains interval-based FPS setter; for stored interval !=1 this is a structural rate/presentation mismatch, and the guard NOP forces evaluation past the controller+0x60 flag. This does not prove V9's actual interval or root cause. V9 remains failed; no V10 validated.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -879,3 +879,57 @@ or ask once for the purpose-specific private controller code window
 `v9_controller_original.json`. Do not repeat timer/FPS baseline
 samples; those questions are answered. Keep research branch only,
 never modify `main` or published releases.
+
+
+## 24. Private original-controller capture identifies mismatched V9 pacing inputs (2026-11-06)
+
+The user provided `v9_controller_original.json` containing the
+original unpatched E0F3 interval controller at
+`main+0x03B4EF60`. The exact original **2048-byte window**
+matched its reported SHA-256
+`3a17158490bb88a05d3a3afcff0ec6141f9154ee5d9848feb4363a9996154728`.
+The guard and presentation opcode fingerprints matched archived V9.
+**This entire original code excerpt and disassembly are private and
+are not published in the repository.**
+
+The entry takes controller `X0` and timing state `X1`:
+`LDRB W8,[X0,#0x60]` then `TBNZ W8,#0,main+0x03B4F074`.
+**When controller flag `+0x60 & 1` is set**, the original code
+skips adaptive interval recalculation but still executes common
+rate-application and presentation calls. V9's NOP removes that
+first gate only; the separate `timing+0x140 >= 1` sample-count
+guard can still bypass recalculation.
+
+In the adaptive path, 64-bit timing measurements at
+`timing+0x148` and `+0x150` are scaled with an actual 60.0f
+constant after conversion by `main+0x00E3A5C0`, adjusted and
+bounded to an integer interval stored at **`controller+0x48`**.
+The controller derives **`controller+0x58 = 60 / interval`**.
+On the joined common path, a helper at
+**`main+0x03B4F160`** reads that `+0x58` rate and calls the
+native shared FPS setter **`main+0x004DC0F0`** at
+`main+0x03B4F190`. That helper handles rejection/fallback.
+The controller then executes the original
+**`LDR W1,[controller+0x48]` at `main+0x03B4F080`**
+and calls the presentation setter
+**`main+0x0346C5C0`** at `main+0x03B4F088`.
+
+**Verified patch inconsistency:** Failed V9 leaves the FPS setter's
+stored-interval-derived rate intact, but replaces the presentation
+load with **`MOV W1,#1`**. Whenever the stored interval is not 1,
+it therefore requests a potentially contradictory native FPS rate and
+presentation interval, *in addition* to changing simulation `S8`.
+This is a proven structural inconsistency conditional on the stored
+interval value; **the actual V9 runtime interval and the cause of
+user-observed over-speed remain unverified**. Do not claim a direct
+causal diagnosis or assume the original shared FPS setter accepted
+every requested value.
+
+See [V9_CONTROLLER_CAUSAL_TRACE.md](V9_CONTROLLER_CAUSAL_TRACE.md).
+This supersedes speculative blanket statements that V9's timer source
+was inherently cumulative or always clamped, and gives a concrete
+source-level reason to separate presentation and simulation changes.
+Next goal: establish whether the converter callback and interval
+controller write competing timing state. No verified playable V10 or
+new release. Keep `main` untouched; 33FA still needs independent
+original-code mapping for this detailed behavior.
