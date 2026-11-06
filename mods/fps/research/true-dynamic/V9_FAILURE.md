@@ -217,3 +217,23 @@ This conditional structural inconsistency is independently proven
 in patch source and original controller code. Its real effects,
 V9's stored interval and the observed overspeed cause remain unknown.
 See [V9_CONTROLLER_CAUSAL_TRACE.md](V9_CONTROLLER_CAUSAL_TRACE.md).
+
+
+## Callback presence established, role still unverified (2026-11-06)
+
+The tester's original-game E0F3 callback resolver found that
+`config+0x1C8` **is non-null in gameplay**, and the virtual
+callback method is **`main+0x02F52DF0`**. A SHA-256-verified
+128-byte source excerpt begins the callback function, but branches
+extend beyond the captured bytes. **The destination's behavior is
+unproven**: presence alone does not establish a feedback loop into
+either native FPS or the presentation setter. Do not label that as a
+confirmed V9 failure cause.
+
+To minimize repeated emulator launches, the guarded research tool
+[`guest_timing_batch_capture.py`](guest_timing_batch_capture.py)
+collects extended callback, native FPS setter, and presentation setter
+code in one private, original-game read-only snapshot. See
+[ONE_SHOT_TIMING_BATCH_GUIDE.md](ONE_SHOT_TIMING_BATCH_GUIDE.md).
+The existing V9 source mismatch remains verified conditional on the
+controller's stored interval differing from 1. No new IPS was made.
