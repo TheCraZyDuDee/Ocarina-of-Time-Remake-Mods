@@ -421,3 +421,27 @@ helper captures 640 bytes around the writer PC at initial debugger halt,
 verifies original frame-step code and resumes execution without breakpoints.
 The produced JSON is PRIVATE and contains original code words; do not publish
 it or the proprietary binaries. Analyze it privately before designing V10.
+
+## 14. Timer import trampoline reached (2026-11-06)
+
+The 160-word private writer code window proved
+`main+0x0346C7EC` is `str x8,[x19,#0x100]` on E0F3, preceded by
+`x8 = current_timer_read() - [x19+0x108]` and followed by a refresh
+of `[x19+0x108]`. The write is conditional; neither a whole-frame
+measurement nor exact units are established.
+
+The subsequent private `timer_source_window.json` (96 words, SHA-256
+verified) shows the presumed timer routine at `main+0x03C41FD0` is
+actually an **AArch64 import trampoline**. Its first entry reads a
+function pointer at **`main+0x04CBF1B0`** and branches through it.
+We have not yet identified the target function or its clock semantics.
+
+See [`TIMER_WRITER_STATIC_ANALYSIS.md`](TIMER_WRITER_STATIC_ANALYSIS.md).
+The new [`guest_timer_import_target.py`](guest_timer_import_target.py)
+resumes an initially stopped GDB guest, waits for a menu/gameplay scene,
+interrupts it once, verifies known original opcodes and the pointer slot,
+then privately captures a bounded 256-byte target-code window if mapped.
+Tests are synthetic only; no live capture yet. User should supply the
+private `timer_import_target.json`, **not commit it**. Keep stable
+releases untouched and do not produce V10 until units, frame scope,
+and actual simulation update cadence are verified.
