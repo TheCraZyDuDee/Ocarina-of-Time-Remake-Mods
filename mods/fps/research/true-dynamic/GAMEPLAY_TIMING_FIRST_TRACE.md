@@ -97,3 +97,15 @@ Before V10, identify the precise write site, verify whether that field
 tracks end-to-end *uninterrupted* frame duration rather than CPU-only or
 partial update time, and map the downstream `s8` uses. Building another
 IPS using only the trace would repeat V9's unsupported assumptions.
+
+## Retrospective correction from later E0F3 code window
+
+A later **verified private 1,024-byte static code excerpt** directly
+resolves the above apparent contradiction: `main+0x006E6C98`
+loads raw 32-bit integer FPS bits into `S0`, then
+`main+0x006E6CA8` performs **`SCVTF S0,S0`**, numerically
+converting integer 60 to float32 60.0. The earlier caution about
+*unresolved* integer-to-float provenance at this site is thus
+superseded **for E0F3**. This does not establish downstream frame
+frequency or validate any patch. See
+[FRAME_STEP_CONSUMERS_FIRST_TRACE.md](FRAME_STEP_CONSUMERS_FIRST_TRACE.md).
