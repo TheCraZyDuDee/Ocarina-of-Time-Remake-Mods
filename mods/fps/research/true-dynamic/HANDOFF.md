@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest static forensic milestone: V9's three modifications are now independently decoded (NOP a branch, force presentation argument W1=1 instead of loading X20+0x48, and replace FDIV S8). The E0F3 timing-converter always writes rounded nominal 60/S8 and, when config+0x1C8 has a callback object, invokes its vtable +0x10 method with no previous-rate comparison on this path. The callback target remains UNKNOWN. Original-game eight-hit trace still shows later callsite S8=1.0, nominal 60; V9 remains failed.
+> Latest source-control-flow milestone: complete 2,816-byte private E0F3 frame-step excerpt proves flags at context+0xD38 BIT 1 selects distinct accounting paths: 0 -> first +1/+S8 config call, 1 -> second +1/+S8 config call. No in-window path from either call's continuation reaches the other; two sites do NOT imply two updates per invocation. Observed flags 0x0B and 0x2B both set bit 1; bit 5 is transiently LDSET/LDCLR around callbacks. V9's cause is still unknown; three independent patch changes remain confounded.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -791,3 +791,42 @@ required to resolve its destination. Do not request repeated baseline
 eight-hit callsite capture. No experimental V10 has been generated,
 no stable branch/release touched, and no private copyrighted
 instructions have been committed.
+
+
+## 22. E0F3 frame-step control-flow correction (2026-11-06)
+
+Source-only follow-up combined the tester's two private checksum-verified
+frame-step windows into a contiguous **2816-byte** code excerpt, then
+constructed an offline direct-branch CFG (B, B.cond, CBZ/CBNZ,
+TBZ/TBNZ, ordinary BL fallthrough; stop on RET and indirect BR).
+The flag `frame_context+0xD38` loaded into W9 is tested at
+**`main+0x006E6CC8: TBNZ W9,#1,main+0x006E6D18`**:
+
+- **Bit 1 clear:** the first accounting `LDADD +1` at
+  `main+0x006E6CF8` and `+S8` double accumulator update precede
+  config callee call at `main+0x006E6DD8`.
+- **Bit 1 set:** branches to the alternate segment, where a second
+  accounting `LDADD +1` at `main+0x006E70C8` and `+S8`
+  accumulator precede config call at `main+0x006E70F8`.
+
+The graph finds first-callsite-to-second-callsite **not reachable**
+within the verified contiguous code, nor reverse reachability,
+assuming normal return from BL and no nonlocal callback transitions.
+It is therefore **incorrect** to claim that the first callsite simply
+runs into the second and automatically causes two updates per
+single invocation. This corrects an initial informal interpretation.
+The earlier eight-hit original-game trace used flags `0x0B`
+(bit 1 set) and reached the **second** call only, matching the CFG.
+Prior snapshots also saw flags `0x2B`; that value has **bit 1 set**
+too. Its distinguishing bit 5 is set with atomic `LDSET` around an
+update callback near `main+0x006E6D24` and cleared by atomic
+`LDCLR` near `main+0x006E6D48`; `0x2B` is compatible with a
+transient in-progress state, **not established as another timing mode**.
+Meaning of other writers and runtime conditions still unknown.
+
+See [E0F3_FRAME_STEP_BRANCH_GRAPH.md](E0F3_FRAME_STEP_BRANCH_GRAPH.md).
+This removes double counting merely from two static code sites as a
+confirmed V9 cause; remaining hypotheses focus on the native
+config callback, guard and presentation changes and what actually
+happens under V9, not a simple additive double count.
+No V10 is validated and original game code remains private.
