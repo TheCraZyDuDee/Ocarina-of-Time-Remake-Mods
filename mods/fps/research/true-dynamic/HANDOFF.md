@@ -3,7 +3,7 @@
 > **Read this first if continuing the project in a new chat, with another AI,
 > or with a different developer.** This file is intended to stand alone.
 > Status: **NOT SOLVED**; last playable experiment **V9 FAILED**.
-> Latest verified source milestone: tester supplied 9,216-byte E0F3 triple-function batch; ALL SHA-256 hashes pass. Callback main+0x02F52DF0 reads config+0x10 variable S8 step and uses it for per-object countdown and FMADD interpolation, plus normalized scales. Present setter main+0x0346C5C0 writes timing+0xFC=60/interval; V9 forcing interval 1 also forces that field to 60. A first E0F3 STEP-ONLY research IPS builder is prepared and synthetic CI-tested; it leaves both V9 guard/present edits ORIGINAL. No real ZIP yet: private NSOs are still ZBIC-compressed, and full gameplay is not validated.
+> Latest first-build milestone: both privately uploaded original E0F3/33FA NSOs were confirmed ZBIC (NSO flags 0xFF; all three sections start 'ZBIC'). Kinnay's GPL-2 ZBIC Python package 1.0.1.post1 has Linux wheels. The research code now includes a one-shot private E0F3 builder that decodes the original compressed NSO IN MEMORY, verifies all 3 SHA-256 segment hashes, verifies original instructions and caves, and creates only an isolated-step test ZIP; no decrypted NSO is stored. Synthetic end-to-end CI passes. Real package unavailable in current restricted container, so NO real IPS ZIP/gameplay verification yet.
 > Updated **2026-11-06**. Keep working on branch
 > `research/true-dynamic-fps`; never overwrite or merge `main` without
 > deliberate review and gameplay evidence.
@@ -1038,3 +1038,72 @@ fabricated. The exact prerequisites for a first private test build,
 and the 60/45/30/15 FPS gameplay validation gate, are recorded in
 [FIRST_BUILD_READINESS.md](FIRST_BUILD_READINESS.md). Do not
 change stable main, ship a release, or claim V10 verified yet.
+
+
+## 27. Original ZBIC decoding and private IPS generation pipeline (2026-11-06)
+
+The user recalled an earlier chat where decompression may already have
+worked. Directly rechecked the two privately attached original NSOs
+and researched the format against Switchbrew, the Eden emulator merge
+and Kinnay's `zbic` Python package. The existing
+[`private_nso_inspection_image.py`](private_nso_inspection_image.py)
+was indeed already designed to decode original compressed NSOs and
+verify three original per-section SHA-256 digests. **The missing piece
+here was an installed external ZBIC decoder**, not an unknown codec.
+ZBIC appears in Switch system 22.0.0: original NSO flag **bit 7**,
+ASCII `ZBIC` frame magic, and modified Zstd/FSE tables encoded via
+Binary Interpolative Coding. **Plain `zstd`/magic replacement cannot
+decode these files reliably.** The independently published
+`zbic==1.0.1.post1` wheel supports Linux (manylinux).
+External sources and the one-command private build procedure are
+in [ZBIC_DECOMPRESSION_AND_BUILD.md](ZBIC_DECOMPRESSION_AND_BUILD.md).
+
+PRIVATE original NSO header facts were verified with the local files:
+
+- **E0F3** source SHA-256
+  `7db9ddfda088c22d219ef13496decd7077c68cd67d4b37f53f4ac46a082768f2`,
+  flags `0xFF`, compressed ZBIC section file offsets
+  `0x104`, `0x17342EB`, `0x1BDB1C6`.
+- **33FA** source SHA-256
+  `efe7b93dfacb091fa0948a92152fd014962a498e463114a924c265522397d990`,
+  flags `0xFF`, section file offsets
+  `0x104`, `0x171C4C2`, `0x1BC0281`.
+- All six sections begin with `b'ZBIC'` exactly at their respective
+  original NSO `file_offset`. These facts establish header format,
+  **not successful decompression**.
+
+**A real implementation/layout bug was found and fixed:** prior
+`private_nso_inspection_image.py` makes a **non-runnable inspection
+image** with decoded bytes at `0x100 + NSO.memory_offset` but keeps
+the original NSO's *compressed file offsets and flags* in the header.
+The archived V9 builder's `load_nso` assumes a different layout
+and must NOT be used to validate that image. New source-only
+[inspection_image_validation.py](inspection_image_validation.py)
+checks all three decoded segments at their correct **memory offsets**
+against the original header's SHA-256 digests and verifies build ID,
+size and ordering. The E0F3
+[isolated_step_research_builder.py](isolated_step_research_builder.py)
+now uses that correct decoded layout.
+
+To eliminate a separate unpack/upload/build pass, the new
+[build_isolated_from_original_zbic.py](build_isolated_from_original_zbic.py)
+accepts the user's ORIGINAL PRIVATE compressed E0F3 NSO directly,
+validates ZBIC signatures, calls the independently installed `zbic`
+package in memory, rechecks all three hashes, and generates only an
+**explicitly enabled UNVALIDATED step-only research IPS32 ZIP**.
+No decompressed Nintendo NSO file is written, no original code is
+bundled into the ZIP, and both archived V9 controller edits remain
+untouched. Synthetic end-to-end tests at
+`tests/test_zbic_to_research_build.py` passed on the research
+branch, including SHA256-corruption and no-package rejection tests.
+
+**Limit:** Current ChatGPT container has no network DNS and no
+`zbic` installed; original real ZBIC decode and playable E0F3 ZIP
+are NOT verified locally. A private local run on the user's Linux
+machine (with internet, `pip install zbic==1.0.1.post1`, clang,
+llvm-objcopy) can perform the complete step in one command, printing
+only input NSO SHA-256 and output IPS SHA-256. Ask for only its
+non-proprietary result/error, not a further GDB capture. The first
+candidate still needs actual game-time and physics-speed validation
+before claiming it works. Stable main, 33FA release and original
+Nintendo files remain untouched/unpublished.
