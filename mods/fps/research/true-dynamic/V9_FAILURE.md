@@ -1,6 +1,16 @@
-# V9 failure: suspected four-tick saturation
+# V9 failure: unresolved interaction of presentation, guard and step
 
 **Status: V9 failed gameplay testing. Do not use it for normal play.**
+**Current strongest verified source finding:** Original E0F3 presentation
+setter stores `timing+0xFC=60/interval`; V9 forced interval 1, while its
+rate controller still derives 60/stored interval and V9 separately
+modifies the simulation step. A 9,216-byte private source batch also
+confirmed that the optional config callback genuinely uses variable
+step for per-object countdowns and interpolation. **The runtime V9
+root cause is still unknown.** Earlier four-tick saturation was a
+historical hypothesis weakened by unpatched 30/50 FPS timer captures;
+do not present it as the leading proven cause. See
+[TIMING_BATCH_2026_11_06.md](TIMING_BATCH_2026_11_06.md).
 
 ## User-reported results
 
