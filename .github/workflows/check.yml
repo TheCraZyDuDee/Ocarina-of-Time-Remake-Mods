@@ -29,3 +29,15 @@ jobs:
             echo "Proprietary dump detected" >&2
             exit 1
           fi
+
+  audit-dynamic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install optional ARM64 audit dependency
+        run: python3 -m pip install unicorn==2.1.4
+      - name: Execute published True Dynamic helper
+        run: python3 tools/audit_dynamic.py -v
