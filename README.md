@@ -4,6 +4,10 @@ A collection of mods for *The Legend of Zelda: Ocarina of Time* on Nintendo Swit
 
 Pick a mod below for details and installation instructions. Downloads contain IPS32 patches only; you'll need your own game files and a compatible emulator.
 
+## AI disclaimer
+
+These mods are developed almost entirely using AI, including the code and documentation. If you don't trust AI-generated code or dislike using AI for development, please skip this project. Use the mods only if you're comfortable with that.
+
 ## Mods
 
 | Mod | What it does | Supported builds | Download |

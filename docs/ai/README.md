@@ -1,6 +1,6 @@
 # AI-assisted development notes
 
-AI tools were used while developing these mods. This folder keeps research history and continuation notes separate from the installation guides.
+These mods, including their code and documentation, are developed almost entirely using AI. This folder keeps research history and continuation notes separate from the installation guides.
 
 - [True Dynamic FPS handoff](fps/true-dynamic.md) — tested patch, earlier experiments and remaining questions.
 
