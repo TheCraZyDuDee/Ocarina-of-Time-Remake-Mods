@@ -1,9 +1,11 @@
-# Mod catalog
+# Mods
 
-| Category | Available mods |
-| --- | --- |
-| [Frame rate and performance](fps/README.md) | [True Dynamic FPS](fps/true-dynamic/README.md) · [Fixed 30 FPS](fps/fixed-30/README.md) · [Native Adaptive FPS](fps/native-adaptive/README.md) |
+Mods are grouped by what they change. Each mod has its own folder and README.
 
-Each mod page explains supported executable builds and installation. **Enable only one FPS mod at a time.**
+## Frame rate
 
-[Project home](../README.md) · [Development guide](../docs/DEVELOPMENT.md)
+- [True Dynamic FPS](fps/true-dynamic/README.md) — adjusts simulation timing as FPS changes; E0F3 only.
+- [Fixed 30 FPS](fps/fixed-30/README.md) — locks the game to 30 FPS.
+- [Native Adaptive FPS](fps/native-adaptive/README.md) — uses the game's 20/30/60 FPS modes.
+
+See [FPS setup](fps/README.md) for installation and build IDs, or [the project home](../README.md) for downloads.

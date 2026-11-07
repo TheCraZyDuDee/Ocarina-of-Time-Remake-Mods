@@ -1,8 +1,8 @@
-# True Dynamic FPS — engineering handoff
+# True Dynamic FPS: AI research handoff
 
 **Updated: 2026-11-07. Latest result: successful real user E0F3 V10 gameplay test.** The tester reports apparently normal game speed at approximately **10–15 FPS and 30–45 FPS** under Eglantine. This supersedes the failed V9 combined timing experiment; it is a qualitative playtest, not precise whole-game time/physics verification. Base **33FA remains unsupported**.
 
-**Active source:** [`mods/fps/build.py`](../../build.py) (`--mode true-dynamic`). **Download:** [E0F3 ZIP](../../../../releases/oot-true-dynamic-e0f3.zip). These are the only commands for routine maintenance:
+**Active source:** [`mods/fps/build.py`](../../../mods/fps/build.py) (`--mode true-dynamic`). **Download:** [E0F3 ZIP](../../../releases/oot-true-dynamic-e0f3.zip). These are the only commands for routine maintenance:
 
 ```sh
 python3 mods/fps/build.py --output-dir dist
@@ -28,6 +28,6 @@ The user observed normal-looking gameplay even around 10–15 FPS. The helper's 
 
 ## Historical research and clean-up
 
-The long `HANDOFF.md`, V9 failure evidence, controller/code-window inspections, ZBIC decoding notes, synthetic debugger tools and dozens of one-off tests remain in **[historical snapshot 8fbda375](https://github.com/TheCraZyDuDee/Ocarina-of-Time-Remake-Mods/tree/8fbda375afd9236075b34d433644258de80aed36/mods/fps/research/true-dynamic)**. They were removed from the current release tree to keep it maintainable; Git history retains them. This short handoff is now the canonical entry point.
+The long `HANDOFF.md`, V9 failure evidence, controller/code-window inspections, ZBIC decoding notes, synthetic debugger tools and dozens of one-off tests remain in **[historical snapshot 8fbda375](https://github.com/TheCraZyDuDee/Ocarina-of-Time-Remake-Mods/tree/8fbda375afd9236075b34d433644258de80aed36/mods/fps/research/true-dynamic)**. They were removed from the current release tree to keep it maintainable; Git history retains them. This handoff retains the research context. Current implementation details are in the [technical notes](../../fps/true-dynamic.md).
 
 The original Nintendo instruction windows, NSOs and private debugger logs have **never been added to GitHub**. Avoid changing the golden release patch while it is working.
