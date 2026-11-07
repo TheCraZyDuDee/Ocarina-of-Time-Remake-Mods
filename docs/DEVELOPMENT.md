@@ -39,6 +39,17 @@ ZIPs use deterministic metadata. Tests and CI compare rebuilt archives byte for 
 
 The tested True Dynamic patch is pinned by SHA-256. See its [technical notes](fps/true-dynamic.md) before changing it.
 
+## Optional ARM64 execution audit
+
+The True Dynamic helper can also be executed in a synthetic ARM64 environment:
+
+```sh
+python3 -m pip install unicorn==2.1.4
+python3 tools/audit_dynamic.py -v
+```
+
+This developer check is separate from the standard-library build and release tests. See the [review notes](fps/true-dynamic-review.md) for its scope and results.
+
 ## Adding a mod
 
 1. Create a folder under `mods/<category>/<mod-name>/`. Reuse a category when it fits; add one for a different kind of mod.

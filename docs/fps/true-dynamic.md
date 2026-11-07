@@ -33,3 +33,5 @@ The 4.0 step cap could limit timing recovery below 15 FPS if there is one update
 Useful follow-up tests cover extended stalls, loading, menus, cutscenes and collision behavior.
 
 [Source](../../mods/fps/build.py) · [Research history](../ai/fps/true-dynamic.md) · [Development guide](../DEVELOPMENT.md)
+
+See the [2026-11-07 review](true-dynamic-review.md) for overhead analysis, preservation limits and executable helper checks.
