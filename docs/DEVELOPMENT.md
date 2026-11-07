@@ -1,29 +1,56 @@
-# Development and releases
+# Building and contributing
 
-The normal FPS mod workflow is now **one build command and one test command**, using only standard Python:
+You'll need Python 3. The build and tests use only the standard library and don't need a game executable.
+
+Run these commands from the repository root:
 
 ```sh
 python3 mods/fps/build.py --output-dir dist
 python3 -m unittest discover -s tests -v
 ```
 
-`mods/fps/build.py` is the sole active generator. It produces:
+## Repository layout
 
-| Mode | ZIP in `releases/` | Main build IDs |
+| Path | Contents |
+| --- | --- |
+| `mods/<category>/<mod>/` | Each mod's README and any files specific to it |
+| `mods/fps/build.py` | Shared generator for the three FPS mods |
+| `releases/` | Downloadable ZIPs, kept here so download URLs stay stable |
+| `tests/` | Patch and release checks |
+| `docs/fps/` | FPS implementation notes |
+| `docs/ai/` | AI-assisted research history and handoff notes |
+| `.github/workflows/` | Verification and release publishing |
+
+## FPS builds
+
+| Mode | Output ZIP | Supported builds |
 | --- | --- | --- |
-| `fixed-30` | `oot-fixed-30-both-builds.zip` | E0F3 + 33FA |
-| `adaptive` | `oot-adaptive-both-builds.zip` | E0F3 + 33FA |
-| `true-dynamic` | `oot-true-dynamic-e0f3.zip` | **E0F3 only** |
+| `fixed-30` | `oot-fixed-30-both-builds.zip` | E0F3, 33FA |
+| `adaptive` | `oot-adaptive-both-builds.zip` | E0F3, 33FA |
+| `true-dynamic` | `oot-true-dynamic-e0f3.zip` | E0F3 only |
 
-The generator checks all IPS32 hashes, uses deterministic ZIP metadata, and needs no Nintendo NSO. CI regenerates the archives and compares them byte-for-byte with the committed ZIPs. The E0F3 True Dynamic IPS must retain the user-tested SHA-256 `306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365` until a replacement is independently tested.
+To build just one mod, add `--mode`, for example:
 
-## Maintaining or adding a mod
+```sh
+python3 mods/fps/build.py --mode fixed-30 --output-dir dist
+```
 
-1. Use a separate branch; identify the **exact executable build**. Never assume 33FA and E0F3 offsets are interchangeable.
-2. Modify the independent IPS replacements and the relevant mod README. Do not modify the tested True Dynamic helper without demonstrated need.
-3. Rebuild ZIPs and run tests. Confirm the PR's GitHub Actions check passes.
-4. Merge only verified changes. Normal releases are in `releases/`; the optional `v*` tag workflow publishes GitHub Release attachments.
+ZIPs use deterministic metadata. Tests and CI compare rebuilt archives byte for byte with `releases/`. If you intentionally change an archive's contents, rebuild it into `releases/` and include the updated ZIP in the same change.
 
-The retired untested Variable-average mode was removed from the current tree. Detailed E0F3 research and legacy debugger scripts remain recoverable from the [historical research snapshot](../mods/fps/research/true-dynamic/HANDOFF.md), not on the default build/test path.
+The tested True Dynamic patch is pinned by SHA-256. See its [technical notes](fps/true-dynamic.md) before changing it.
 
-**Do not commit Nintendo executables, decrypted NSOs, original code windows, keys, saves, extracted game assets or private logs.** IPS payloads contain independently authored replacement instructions. See [attribution](ATTRIBUTION.md).
+## Adding a mod
+
+1. Create a folder under `mods/<category>/<mod-name>/`. Reuse a category when it fits; add one for a different kind of mod.
+2. Give it a README covering what it changes, supported builds, download, installation and known issues. Put shared instructions in the category README.
+3. Keep mod-specific source with the mod. Share a generator within a category when mods use the same patching logic, as the FPS mods do.
+4. Add a downloadable ZIP to `releases/` and link the mod from the root README and mod catalog. Update the category index too.
+5. Add suitable build checks and document what was actually playtested. Addresses from one executable build mustn't be assumed to work on another.
+
+Work on a branch and run the relevant tests before opening a pull request. Keep research and AI handoffs out of installation instructions; put them under `docs/` instead.
+
+## Publishing
+
+The `v*` tag workflow builds the FPS ZIPs and uploads them to a GitHub prerelease. Regular downloads remain in `releases/`.
+
+Don't commit game executables, decrypted NSOs, keys, saves, extracted assets or private debugger logs. See [credits and distribution notes](ATTRIBUTION.md).

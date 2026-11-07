@@ -1,17 +1,19 @@
 # Fixed 30 FPS
 
-**Status:** Normal-speed gameplay confirmed by a tester on build `E0F3CCFA...`. The second build is statically verified but not gameplay-tested.
+Locks the game's own frame-rate controller to 30 FPS using its native simulation timing.
 
-Locks the game's **own frame-rate controller** to 30 FPS while using its native simulation timing. This is not a generic emulator speed limiter.
+[Download Fixed 30 FPS](../../../releases/oot-fixed-30-both-builds.zip?raw=true)
 
-**[Download the standalone ZIP](../../../releases/oot-fixed-30-both-builds.zip)**
+## Compatibility
 
-Supports both builds listed in the [FPS compatibility table](../README.md#compatibility).
+Supports **E0F3 and 33FA**. A tester confirmed normal-speed gameplay on E0F3. The 33FA patch has been checked against the expected instructions but hasn't been playtested.
 
 ## Install
 
-Import the ZIP into a compatible emulator or extract its title-ID folder into the emulator's `load/` directory. Disable other FPS mods and Orchid's built-in FPS patch. Restart at 100% emulator speed.
+Follow the [FPS installation guide](../README.md#installation). Use this mod on its own, with emulator speed set to 100% and other FPS patches disabled.
 
-Source and build logic: [`../build.py`](../build.py) (mode `fixed-30`). Fixed-FPS instruction locations were documented by [Orchid](https://github.com/MythosOfs/Orchid).
+## Source
 
-[All FPS mods](../README.md) · [Project home](../../../README.md)
+Built by [the shared FPS generator](../build.py) with `--mode fixed-30`. Patch locations were documented by [Orchid](https://github.com/MythosOfs/Orchid); see [credits](../../../docs/ATTRIBUTION.md).
+
+[Compare FPS mods](../README.md) · [Project home](../../../README.md)

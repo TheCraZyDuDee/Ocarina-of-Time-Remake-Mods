@@ -1,10 +1,11 @@
-# Attribution and distribution notes
+# Credits and distribution
 
-- **Original project material:** the standalone IPS32 generator, independently authored FPS patching approach, tests and documentation in this repository are distributed under its MIT license.
-- **Orchid:** [MythosOfs/Orchid](https://github.com/MythosOfs/Orchid), `src/core/file_sys/patch_manager.cpp`, documents Ocarina-specific fixed-30 patch addresses, build IDs and instruction parameters. Its source is GPL-licensed. This repository credits the research but **does not copy Orchid's source code** or include an emulator build.
-- **Lichii:** [zortos293/Lichii](https://github.com/zortos293/Lichii) was consulted for background on NSO loading, IPS32 support and emulator timing. No Lichii source is included here.
-- **Nintendo:** the mods are small byte patches only. No game executable, decrypted NSO, encryption keys, game models, textures, audio, ROM or proprietary assets are distributed. You need your own legitimately obtained game data and compatible emulator software.
+- [Orchid](https://github.com/MythosOfs/Orchid) documents the Ocarina-specific fixed-30 patch addresses, build IDs and instruction parameters in `src/core/file_sys/patch_manager.cpp`. Its source is GPL-licensed. This repository credits that research and doesn't include Orchid source or an emulator build.
+- [Lichii](https://github.com/zortos293/Lichii) was consulted for background on NSO loading, IPS32 support and emulator timing. No Lichii source is included.
+- Development, including the code and documentation, is done almost entirely using AI. Research history and continuation notes are kept in [docs/ai](ai/README.md).
 
-The MIT license applies only to the material this repository's contributors have the right to license. It does not override third-party licenses or grant rights to the underlying game. Small instruction parameters and addresses are provided as compatibility information; this is **not a legal opinion** about every jurisdiction or platform policy.
+The generator, tests and original documentation are covered by the [MIT license](../LICENSE). That license applies to this repository's own work, not the underlying game or third-party projects.
 
-Do not submit proprietary dumps in issues, pull requests, release assets or git history. When contributing patches, provide build-ID-specific addresses and original/replacement words; test locally and submit the minimal patch generator changes.
+Downloads contain patches only. No Nintendo executables, keys, saves or extracted game assets are included. You'll need your own legitimately obtained game data and compatible emulator software.
+
+Please don't upload proprietary game files in issues, pull requests or releases.

@@ -1,17 +1,21 @@
 # Native Adaptive FPS
 
-**Status:** Experimental. A tester reported good gameplay behavior at **20 FPS**; the 30 and 60 FPS modes have not been independently confirmed.
+Lets the game's frame-rate controller choose between **20, 30 and 60 FPS**. It switches between these fixed modes rather than adjusting continuously.
 
-Allows the game's existing adaptive frame controller to select between **20, 30 and 60 FPS** (1, 2 or 3 refresh intervals at 60 Hz). These are native discrete steps, **not** fully arbitrary FPS values.
+[Download Native Adaptive FPS](../../../releases/oot-adaptive-both-builds.zip?raw=true)
 
-**[Download the standalone ZIP](../../../releases/oot-adaptive-both-builds.zip)**
+## Compatibility
 
-Supports both builds listed in the [FPS compatibility table](../README.md#compatibility).
+Supports **E0F3 and 33FA**. This mod is experimental: a tester reported good gameplay at 20 FPS, but the 30 and 60 FPS modes haven't been independently confirmed.
 
 ## Install
 
-Import the ZIP into a compatible emulator or extract its title-ID folder into the emulator's `load/` directory. Disable other FPS mods and Orchid's built-in FPS patch. Restart at 100% emulator speed.
+Follow the [FPS installation guide](../README.md#installation). Use this mod on its own, with emulator speed set to 100% and other FPS patches disabled.
 
-Source and build logic: [`../build.py`](../build.py) (mode `adaptive`). Test animations, movement and frame pacing if your system can reach multiple FPS modes.
+If your system reaches several FPS modes, check movement, animations and frame pacing as it switches between them.
 
-[All FPS mods](../README.md) · [Project home](../../../README.md)
+## Source
+
+Built by [the shared FPS generator](../build.py) with `--mode adaptive`.
+
+[Compare FPS mods](../README.md) · [Project home](../../../README.md)

@@ -1,34 +1,29 @@
-# True Dynamic FPS — E0F3
+# True Dynamic FPS
 
-**Status:** First successful live user playtest. The tested E0F3 isolated-step V10 kept apparent gameplay speed normal while actual rendering varied around **10–15 and 30–45 FPS**. The precise speed of every physics and cutscene system has not been independently timed.
+Adjusts the game's simulation timing as the frame rate changes, while leaving its frame-rate controller and presentation interval alone.
 
-**[Download True Dynamic FPS](../../../releases/oot-true-dynamic-e0f3.zip)**
+[Download True Dynamic FPS](../../../releases/oot-true-dynamic-e0f3.zip?raw=true)
 
 ## Compatibility
 
-- **Title ID:** `0400486024DEC000`
-- **Only supported main build:** `E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348`
-- **Unsupported:** `33FA6C2C23848282A77E8B88A0A93F4887C55920` (base) and other executable versions.
+Supports **E0F3 only**: `E0F3CCFAF50065AE4EA01EB5AEB13B1A45DA3348`.
 
-The mod scales the game's existing simulation step using a physical-counter time delta. Unlike failed combined V9, **it leaves the original frame-rate guard and presentation interval untouched**. It does not increase emulator speed, add frame generation, or work at zero rendered FPS.
+The 33FA base build and other versions aren't supported.
+
+## What to expect
+
+A tester using Eglantine reported normal-looking gameplay speed at around **10–15 and 30–45 FPS**. This is still experimental: physics, cutscenes and every scene haven't been independently timed.
+
+The timing adjustment has a limit, so long stalls or sustained very low FPS may still slow the game down. The mod doesn't add frame generation or increase emulator speed.
 
 ## Install
 
-1. Back up saves. Disable all other FPS patches, including emulator built-in FPS mods.
-2. Import the ZIP in the emulator's mod manager, or extract its inner `0400486024DEC000/` folder into the emulator `load/` directory.
-3. Set emulator speed to **100%**, disable frame generation, restart, and confirm the IPS applies to E0F3.
-4. If you encounter unexpected cutscene, menu, loading, collision or animation timing, disable it and report the situation.
+Follow the [FPS installation guide](../README.md#installation). Disable all other FPS patches, including older dynamic experiments, and keep emulator speed at 100% with frame generation off.
 
-Do not combine it with Fixed 30, Native Adaptive, V9 or any older dynamic/variable-average experiments.
+If menus, loading, collisions, animations or cutscenes behave oddly, disable the mod and report where it happened.
 
-## Reproducibility and boundaries
+## Source
 
-The release contains **exactly the same 209-byte E0F3 IPS** that succeeded in the user's V10 gameplay test; only the ZIP folder/README labeling was cleaned up.
+Built by [the shared FPS generator](../build.py) with `--mode true-dynamic`. The release keeps the same 209-byte patch used in the successful V10 playtest.
 
-**IPS SHA-256:** `306e36cec3efc28a38df627ed38245fe29008855a85cfe4a249a7d8fb2fd1365`.
-
-Step size is bounded to **0.5–4.0 nominal simulation units per update**. Very long stalls or sustained extreme FPS drops are not guaranteed to track wall-clock time perfectly. The positive test is practical gameplay evidence, not complete formal validation.
-
-Rebuild with `python3 mods/fps/build.py --mode true-dynamic --output-dir dist`. No original NSO or external Python package is needed.
-
-[All FPS mods](../README.md) · [Engineering handoff](../research/true-dynamic/HANDOFF.md) · [Project home](../../../README.md)
+[Technical notes](../../../docs/fps/true-dynamic.md) · [Compare FPS mods](../README.md) · [Project home](../../../README.md)
